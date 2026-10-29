@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# secrets - NEVER commit these (the *.example files are the safe templates)
+.env
+.env.*
+.env.local
+.env.production
+!.env.example
+
+# build output / archives / logs / OS files
+dist/
+**/dist/
+coverage/
+*.log
+*.zip
+.DS_Store
+Thumbs.db
+
+# legacy JSON user storage (replaced by MongoDB; kept out of git because it holds password hashes)
+server/data/

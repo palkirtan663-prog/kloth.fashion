@@ -1,0 +1,17 @@
+{
+  "_about": "Maps each local file in public/images/ to an Unsplash photo. Run `npm run images` to download them. Set unsplashId to the 11-character id at the end of an Unsplash photo page URL (unsplash.com/photos/<description>-<ID>). A null id means no photo has been chosen yet: the store shows a labelled fallback tile for that product.",
+  "_license": "Photos from Unsplash are free to use under the Unsplash License (https://unsplash.com/license). Crediting the photographer is appreciated; each page below names them.",
+  "images": [
+    { "file": "hero.jpg", "unsplashId": "6OGml3UomZw", "usedFor": "Homepage hero", "page": "https://unsplash.com/photos/man-in-black-crew-neck-t-shirt-and-blue-denim-jeans-standing-beside-white-wall-6OGml3UomZw", "unsplashTitle": "man in black crew neck t-shirt and blue denim jeans standing beside white wall (tagged: portrait, fashion)" },
+    { "file": "midnight-box-tee.jpg", "unsplashId": "zwXuzFr3mLs", "usedFor": "Midnight Box Tee", "page": "https://unsplash.com/photos/man-wearing-black-crew-neck-t-shirt-zwXuzFr3mLs", "unsplashTitle": "man wearing black crew-neck t-shirt (Andre Hunter)" },
+    { "file": "noir-oversized-tee.jpg", "unsplashId": "YChGF6VS8Lc", "usedFor": "Noir Oversized Tee", "page": "https://unsplash.com/photos/mens-black-t-shirt-YChGF6VS8Lc", "unsplashTitle": "men's black T-shirt (Daniel Schaffer)" },
+    { "file": "signal-hoodie.jpg", "unsplashId": "YNqHywGWGos", "usedFor": "Signal Hoodie", "page": "https://unsplash.com/photos/man-in-gray-hoodie-standing-YNqHywGWGos", "unsplashTitle": "man in gray hoodie standing" },
+    { "file": "slate-heavy-hoodie.jpg", "unsplashId": "_QVEhcGlHwk", "usedFor": "Slate Heavy Hoodie", "page": "https://unsplash.com/photos/man-in-gray-hoodie-standing-on-brown-grass-field-during-daytime-_QVEhcGlHwk", "unsplashTitle": "man in gray hoodie standing on brown grass field during daytime" },
+    { "file": "studio-cargo.jpg", "unsplashId": null, "usedFor": "Studio Cargo (olive cargo trousers)" },
+    { "file": "ranger-cargo.jpg", "unsplashId": null, "usedFor": "Ranger Cargo (black cargo trousers)" },
+    { "file": "everyday-wide-pant.jpg", "unsplashId": null, "usedFor": "Everyday Wide Pant (wide-leg trousers)" },
+    { "file": "afterhours-overshirt.jpg", "unsplashId": null, "usedFor": "Afterhours Overshirt (charcoal overshirt)" },
+    { "file": "field-overshirt.jpg", "unsplashId": null, "usedFor": "Field Overshirt (olive overshirt)" },
+    { "file": "mono-track-jacket.jpg", "unsplashId": null, "usedFor": "Mono Track Jacket (track / casual jacket)" }
+  ]
+}
