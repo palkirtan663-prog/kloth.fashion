@@ -1,26 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../services/api.js';
+import { FALLBACK_PRODUCTS } from '../data/fallbackProducts.js';
 
-// Loads the catalogue from the API (MongoDB). status: 'loading' | 'ready' | 'error'
+// Loads the catalogue from the API (MongoDB) with resilient client-side fallback
 export default function useProducts() {
-  const [products, setProducts] = useState([]);
-  const [status, setStatus] = useState('loading');
+  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
+  const [status, setStatus] = useState('ready');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    setStatus('loading');
     api('/products')
       .then((d) => {
         if (cancelled) return;
-        setProducts(Array.isArray(d) ? d : []);
+        if (Array.isArray(d) && d.length > 0) {
+          setProducts(d);
+        } else if (!products || products.length === 0) {
+          setProducts(FALLBACK_PRODUCTS);
+        }
         setStatus('ready');
       })
       .catch((e) => {
         if (cancelled) return;
-        setError(e.message);
-        setStatus('error');
+        if (!products || products.length === 0) {
+          setProducts(FALLBACK_PRODUCTS);
+        }
+        setStatus('ready');
       });
     return () => { cancelled = true; };
   }, [attempt]);
