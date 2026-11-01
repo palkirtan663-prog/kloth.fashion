@@ -16,7 +16,7 @@ let activeBase = sanitizedConfigBase || '/api';
 export const API_BASE = activeBase;
 
 const TOKEN_KEY = 'kloth_token';
-const REQUEST_TIMEOUT_MS = isLocal ? 25000 : 12000;
+const REQUEST_TIMEOUT_MS = 3500;
 
 export const getToken = () => {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
@@ -30,12 +30,13 @@ export const setToken = (token) => {
 let onUnauthorized = () => {};
 export const setUnauthorizedHandler = (fn) => { onUnauthorized = fn; };
 
-export async function api(path, { method = 'GET', body } = {}) {
+export async function api(path, { method = 'GET', body, timeoutMs } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const payload = body ? JSON.stringify(body) : undefined;
+  const timeoutLimit = timeoutMs || REQUEST_TIMEOUT_MS;
 
   // Build candidate URL bases in priority order:
   // In local development: activeBase -> /api -> 127.0.0.1:5000 -> localhost:5000 -> CONFIGURED_BASE
@@ -45,7 +46,6 @@ export async function api(path, { method = 'GET', body } = {}) {
         activeBase,
         '/api',
         'http://127.0.0.1:5000/api',
-        'http://localhost:5000/api',
         sanitizedConfigBase,
       ].filter(Boolean).filter((v, idx, arr) => arr.indexOf(v) === idx)
     : [
@@ -60,7 +60,7 @@ export async function api(path, { method = 'GET', body } = {}) {
 
   for (const base of candidates) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutLimit);
     try {
       res = await fetch(base + path, {
         method,
