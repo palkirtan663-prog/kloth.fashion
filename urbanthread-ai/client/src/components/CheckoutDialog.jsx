@@ -155,6 +155,10 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
         if (res.token) {
           setToken(res.token);
         }
+        try {
+          const prev = JSON.parse(localStorage.getItem('kloth_placed_orders') || '[]');
+          localStorage.setItem('kloth_placed_orders', JSON.stringify([res.order, ...prev.slice(0, 19)]));
+        } catch {}
         setPlacedOrder(res.order);
         setStep('success');
         if (onOrderPlaced) onOrderPlaced(res.order, res.user);
@@ -181,6 +185,10 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
         estimatedDelivery: '3-4 Business Days',
         createdAt: new Date().toISOString(),
       };
+      try {
+        const prev = JSON.parse(localStorage.getItem('kloth_placed_orders') || '[]');
+        localStorage.setItem('kloth_placed_orders', JSON.stringify([fallbackOrder, ...prev.slice(0, 19)]));
+      } catch {}
       setPlacedOrder(fallbackOrder);
       setStep('success');
       if (onOrderPlaced) onOrderPlaced(fallbackOrder, user);

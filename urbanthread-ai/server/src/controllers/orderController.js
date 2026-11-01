@@ -257,7 +257,12 @@ async function getOrderByIdOrTracking(req, res) {
     order = await Order.findById(id);
   }
   if (!order) {
-    order = await Order.findOne({ trackingNumber: new RegExp(`^${id}$`, 'i') });
+    order = await Order.findOne({
+      $or: [
+        { trackingNumber: new RegExp(`^${id}$`, 'i') },
+        { orderNumber: new RegExp(`^${id}$`, 'i') },
+      ],
+    });
   }
 
   if (!order) {
