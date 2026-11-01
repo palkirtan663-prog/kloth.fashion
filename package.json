@@ -7,11 +7,12 @@
     "node": ">=20.19.0"
   },
   "scripts": {
+    "postinstall": "npm --prefix urbanthread-ai/client install",
     "setup": "npm --prefix urbanthread-ai run setup",
     "dev": "npm --prefix urbanthread-ai run dev",
     "server": "npm --prefix urbanthread-ai run server",
     "client": "npm --prefix urbanthread-ai run client",
-    "build": "npm --prefix urbanthread-ai run build",
+    "build": "npm --prefix urbanthread-ai/client run build",
     "start": "npm --prefix urbanthread-ai run start",
     "seed": "npm --prefix urbanthread-ai run seed",
     "seed:reset": "npm --prefix urbanthread-ai run seed:reset",

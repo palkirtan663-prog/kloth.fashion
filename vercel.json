@@ -1,7 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "urbanthread-ai/client/dist",
   "framework": "vite",
+  "installCommand": "npm --prefix urbanthread-ai/client install",
+  "buildCommand": "npm --prefix urbanthread-ai/client run build",
+  "outputDirectory": "urbanthread-ai/client/dist",
   "rewrites": [
     {
       "source": "/(.*)",
