@@ -31,9 +31,19 @@ async function main() {
     await ensureAdmin(config);
     if (config.autoSeedProducts) await seedIfEmpty();
     dbConnected = true;
+    console.log('[startup] Live MongoDB Atlas cluster connected and initialized successfully!');
   } catch (err) {
-    console.warn(`\n[startup] Remote MongoDB Atlas connection notice: ${err.message}`);
-    console.log('[startup] Automatically activating local database fallback so your store, admin, and orders work smoothly!');
+    console.error('\n' + '='.repeat(72));
+    console.error('[db] MONGODB ATLAS CONNECTION NOTICE:');
+    console.error(`  ${err.message}`);
+    console.error('\n  TO CONNECT YOUR LIVE MONGODB ATLAS CLUSTER:');
+    console.error('  1. Open https://cloud.mongodb.com and log in.');
+    console.error('  2. In the left menu, click "Network Access" under Security.');
+    console.error('  3. Click "Add IP Address" and select "Allow Access from Anywhere" (0.0.0.0/0)');
+    console.error('     or add your current external IP.');
+    console.error('  4. Click "Confirm" - changes take effect in ~60 seconds.');
+    console.error('='.repeat(72));
+    console.log('\n[startup] Activating local database fallback so storefront, admin, and cart remain testable locally.');
     activateLocalStore(config);
     await ensureAdmin(config);
   }

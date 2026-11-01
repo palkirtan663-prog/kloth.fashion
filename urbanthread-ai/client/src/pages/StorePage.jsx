@@ -318,8 +318,9 @@ export default function StorePage({
     setCart((current) => current.filter((item) => !(item.id === id && (item.size || 'M') === size)));
   };
 
-  const handleOrderPlaced = (order) => {
+  const handleOrderPlaced = (order, newlyCreatedUser) => {
     setCart([]);
+    if (newlyCreatedUser) setCurrentUser(newlyCreatedUser);
     triggerToast(`Order ${order.trackingNumber} placed successfully!`);
   };
 

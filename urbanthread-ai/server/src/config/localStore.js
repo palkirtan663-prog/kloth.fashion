@@ -428,14 +428,26 @@ function activateLocalStore(config = {}) {
     return makeDoc(newProd);
   };
 
-  Product.findByIdAndUpdate = async (id, update) => {
+  Product.findByIdAndUpdate = async (id, update = {}) => {
     const idx = inMemoryDb.products.findIndex(
       (x) => String(x.id) === String(id) || String(x._id) === String(id)
     );
     if (idx === -1) return null;
+    let prod = inMemoryDb.products[idx];
+    if (update.$inc) {
+      for (const [key, val] of Object.entries(update.$inc)) {
+        prod[key] = Math.max(0, (Number(prod[key]) || 0) + Number(val));
+      }
+    }
+    if (update.$set) {
+      Object.assign(prod, update.$set);
+    }
+    const cleanUpdate = { ...update };
+    delete cleanUpdate.$inc;
+    delete cleanUpdate.$set;
     inMemoryDb.products[idx] = {
-      ...inMemoryDb.products[idx],
-      ...update,
+      ...prod,
+      ...cleanUpdate,
       updatedAt: new Date().toISOString(),
     };
     saveToDisk();
@@ -597,14 +609,22 @@ function activateLocalStore(config = {}) {
     return makeDoc(o);
   };
 
-  Order.findOne = (filter) => {
+  Order.findOne = (filter = {}) => {
     const run = async () => {
       if (filter.trackingNumber) {
         const regex = filter.trackingNumber instanceof RegExp ? filter.trackingNumber : new RegExp(`^${filter.trackingNumber}$`, 'i');
         const o = inMemoryDb.orders.find((x) => regex.test(x.trackingNumber));
         return makeDoc(o);
       }
-      return null;
+      const o = inMemoryDb.orders.find((item) => {
+        if (filter.user && String(item.user) !== String(filter.user)) return false;
+        if (filter.total !== undefined && item.total !== filter.total) return false;
+        if (filter.createdAt && filter.createdAt.$gte) {
+          if (new Date(item.createdAt) < new Date(filter.createdAt.$gte)) return false;
+        }
+        return true;
+      });
+      return makeDoc(o);
     };
     return createQuery(run());
   };

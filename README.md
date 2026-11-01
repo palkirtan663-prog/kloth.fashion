@@ -80,13 +80,18 @@ Open your browser at: <http://localhost:5173>
 
 ---
 
-## 🔑 Default Credentials & Quick Login
+## 🔑 Admin & Customer Credentials
 
-| Role | Email | Password | Access Level |
+Configure your admin credentials securely in `server/.env`:
+```bash
+ADMIN_EMAIL=admin@urbanthread.com
+ADMIN_PASSWORD=YourSecurePassword123!
+```
+
+| Role | Default Email | Configured Via | Access Level |
 |---|---|---|---|
-| **Store Owner / Admin** | `palkirtan663@gmail.com` | `UrbanThread@2026!` | Full Executive Admin Dashboard (Orders, Products, Banners, Support, Users, Bespoke Quotes) |
-| **System Admin** | `admin@urbanthread.com` | `UrbanThread@2026!` | Full Admin Panel & Catalogue Editor |
-| **Verified Customer** | `customer@kloth.fashion` | `Customer@123` | Cart, Checkout, Wishlist, Order Tracking, Bespoke Requests |
+| **System Admin** | `admin@urbanthread.com` (or your email) | `ADMIN_EMAIL` & `ADMIN_PASSWORD` in `.env` | Full Executive Admin Dashboard (Orders, Products, Banners, Support, Users, Bespoke Quotes) |
+| **Customer Account** | Register via `/login` | User Registration Form | Cart, Checkout, Wishlist, Order Tracking, Bespoke Requests |
 | **Guest Explorer** | *(No credentials needed)* | *(Click "Explore as Guest")* | Instant browsing of all 50+ pieces, categories, filters & style assistant |
 
 ---

@@ -8232,3 +8232,13 @@ dialog::backdrop {
      font-size: 10px;
    }
  }
+.formGroup input.hasError {
+  border-color: #e53935 !important;
+  background-color: #fff8f8 !important;
+}
+.formFieldErrorMsg {
+  font-size: 11px;
+  color: #d32f2f;
+  margin-top: 2px;
+  font-weight: 600;
+}

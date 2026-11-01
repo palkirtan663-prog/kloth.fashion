@@ -34,4 +34,26 @@ async function authenticate(req, res, next) {
   next();
 }
 
+async function optionalAuthenticate(req, res, next) {
+  const parts = (req.headers.authorization || '').trim().split(/\s+/);
+  const scheme = parts[0];
+  const token = parts[1];
+  if (scheme !== 'Bearer' || !token) {
+    req.user = null;
+    return next();
+  }
+
+  try {
+    const payload = verifyToken(token, req.app.locals.config);
+    if (mongoose.isValidObjectId(payload.sub)) {
+      const user = await User.findById(payload.sub);
+      if (user) req.user = user;
+    }
+  } catch {}
+  next();
+}
+
+authenticate.authenticate = authenticate;
+authenticate.optionalAuthenticate = optionalAuthenticate;
+
 module.exports = authenticate;

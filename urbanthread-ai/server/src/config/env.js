@@ -10,9 +10,35 @@ const path = require('path');
 const WEAK_SECRET = /^(replace|change-this|your-|secret$|password$)/i;
 const PLACEHOLDER_URI = /<[^>]*>|your[_-]?(password|username)/i;
 
-function loadEnvFile() {
-  // server/src/config -> server/.env
-  require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env'), quiet: true });
+function loadEnvFile(envPath) {
+  const targetPath = envPath || path.join(__dirname, '..', '..', '.env');
+  try {
+    let dotenv;
+    try {
+      dotenv = require('dotenv');
+    } catch {
+      dotenv = require(path.join(__dirname, '..', '..', 'node_modules', 'dotenv'));
+    }
+    dotenv.config({ path: targetPath, quiet: true });
+  } catch (err) {
+    // Safe fallback .env parser
+    try {
+      const fs = require('fs');
+      if (fs.existsSync(targetPath)) {
+        const lines = fs.readFileSync(targetPath, 'utf8').split(/\r?\n/);
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith('#')) continue;
+          const eq = trimmed.indexOf('=');
+          if (eq > 0) {
+            const key = trimmed.slice(0, eq).trim();
+            const val = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+            if (!process.env[key]) process.env[key] = val;
+          }
+        }
+      }
+    } catch {}
+  }
 }
 
 function toInt(value, fallback) {

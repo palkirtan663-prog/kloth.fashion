@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Build files
+dist/
+build/
+coverage/
+
+# Logs
+*.log
+
+# Local data
+**/server/data/
+
+# Archives
+*.zip
+
+# Scratch scripts
+urbanthread-ai/scratch/

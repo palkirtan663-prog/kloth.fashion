@@ -134,34 +134,25 @@ export default function AuthPage({ onAuth, notice = '' }) {
   }
 
   const quickFillAdmin = () => {
-    setForm({
+    setForm((f) => ({
+      ...f,
       name: 'Kloth Admin',
       email: 'admin@urbanthread.com',
-      password: 'UrbanThread@2026!',
-      confirm: 'UrbanThread@2026!',
-    });
-    setError('');
-    setSuccessMsg('');
-  };
-
-  const quickFillKirtan = () => {
-    setForm({
-      name: 'Kirtan Pal',
-      email: 'palkirtan663@gmail.com',
-      password: '',
-      confirm: '',
-    });
+      password: f.password || 'UrbanThread@2026!',
+      confirm: f.confirm || 'UrbanThread@2026!',
+    }));
     setError('');
     setSuccessMsg('');
   };
 
   const quickFillCustomer = () => {
-    setForm({
+    setForm((f) => ({
+      ...f,
       name: 'Demo Customer',
       email: 'customer@kloth.fashion',
-      password: 'Customer@123',
-      confirm: 'Customer@123',
-    });
+      password: f.password || 'Customer@123',
+      confirm: f.confirm || 'Customer@123',
+    }));
     setError('');
     setSuccessMsg('');
   };
@@ -496,9 +487,6 @@ export default function AuthPage({ onAuth, notice = '' }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
                 <button type="button" className="quickFillBtn" onClick={quickFillAdmin}>
                   Auto-fill Default Admin (admin@urbanthread.com)
-                </button>
-                <button type="button" className="quickFillBtn" onClick={quickFillKirtan}>
-                  Set / Fill Kirtan Pal (palkirtan663@gmail.com)
                 </button>
               </div>
             ) : (

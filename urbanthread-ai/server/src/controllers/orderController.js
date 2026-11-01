@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const { signToken } = require('../utils/jwt');
+const { normalizeEmail, EMAIL_RE } = require('../utils/validators');
 
 // Valid promo codes with percentage or flat discounts
 const PROMO_CODES = {
@@ -25,35 +28,122 @@ async function createOrder(req, res) {
     return res.status(400).json({ error: 'Cart is empty. Add pieces to order.' });
   }
 
-  if (
-    !shippingAddress ||
-    !shippingAddress.fullName ||
-    !shippingAddress.phone ||
-    !shippingAddress.street ||
-    !shippingAddress.city ||
-    !shippingAddress.postalCode
-  ) {
+  // 1. Validate complete shipping address
+  if (!shippingAddress) {
     return res.status(400).json({ error: 'Complete shipping address is required.' });
   }
 
-  // Calculate and verify totals safely
+  const fullName = String(shippingAddress.fullName || '').trim();
+  if (fullName.length < 2) {
+    return res.status(400).json({ error: 'Please enter a valid recipient full name (min 2 characters).' });
+  }
+
+  const phone = String(shippingAddress.phone || '').trim().replace(/[\s-]/g, '');
+  if (!/^\+?[0-9]{10,14}$/.test(phone)) {
+    return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number.' });
+  }
+
+  const street = String(shippingAddress.street || '').trim();
+  if (street.length < 4) {
+    return res.status(400).json({ error: 'Please enter a complete delivery address (street/building).' });
+  }
+
+  const city = String(shippingAddress.city || '').trim();
+  if (city.length < 2) {
+    return res.status(400).json({ error: 'Please enter a valid city name.' });
+  }
+
+  const postalCode = String(shippingAddress.postalCode || '').trim();
+  if (postalCode.length < 4) {
+    return res.status(400).json({ error: 'Please enter a valid postal / PIN code.' });
+  }
+
+  // 2. Resolve or auto-register customer account
+  let effectiveUser = req.user;
+  let newlyIssuedToken = null;
+
+  if (!effectiveUser) {
+    const rawEmail = shippingAddress.email || req.body.customerEmail;
+    if (!rawEmail || !EMAIL_RE.test(String(rawEmail).trim())) {
+      return res.status(400).json({
+        error: 'A valid email address is required for order tracking and confirmation.',
+      });
+    }
+
+    const email = normalizeEmail(rawEmail);
+    let existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      // Auto-create customer account so order appears in their dashboard
+      const autoPassword = 'Kloth@' + Math.random().toString(36).substring(2, 8) + '!';
+      const passwordHash = await bcrypt.hash(autoPassword, 10);
+      existingUser = await User.create({
+        name: fullName,
+        email,
+        phone,
+        passwordHash,
+        role: 'user',
+        address: {
+          street,
+          city,
+          state: String(shippingAddress.state || 'Maharashtra').trim(),
+          postalCode,
+        },
+      });
+    }
+
+    effectiveUser = existingUser;
+    try {
+      const jwtCfg = req.app?.locals?.config || {
+        jwtSecret: process.env.JWT_SECRET,
+        jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
+      };
+      newlyIssuedToken = signToken(effectiveUser.id || effectiveUser._id, jwtCfg);
+    } catch (e) {
+      console.warn('[order] Auto-token issuance notice:', e.message);
+    }
+  }
+
+  // 3. Verify stock availability and prices against catalog
   let subtotal = 0;
-  const verifiedItems = items.map((it) => {
+  const verifiedItems = [];
+
+  for (const it of items) {
     const qty = Math.max(1, parseInt(it.quantity, 10) || 1);
-    const price = Math.max(0, parseFloat(it.price) || 0);
-    subtotal += price * qty;
-    return {
-      product: mongoose.Types.ObjectId.isValid(it.id || it.product) ? (it.id || it.product) : undefined,
-      name: String(it.name || 'Product').slice(0, 80),
-      price,
+    const prodId = it.id || it.product;
+    let catalogProduct = null;
+
+    if (prodId && mongoose.Types.ObjectId.isValid(prodId)) {
+      catalogProduct = await Product.findById(prodId);
+    }
+    if (!catalogProduct && it.name) {
+      catalogProduct = await Product.findOne({ name: String(it.name).trim() });
+    }
+
+    if (catalogProduct) {
+      // Check stock
+      if (typeof catalogProduct.stock === 'number' && catalogProduct.stock < qty) {
+        return res.status(400).json({
+          error: `Sorry, "${catalogProduct.name}" has only ${catalogProduct.stock} pieces available in stock. Please adjust your bag quantity.`,
+        });
+      }
+    }
+
+    const unitPrice = catalogProduct ? catalogProduct.price : Math.max(0, parseFloat(it.price) || 0);
+    subtotal += unitPrice * qty;
+
+    verifiedItems.push({
+      product: catalogProduct ? catalogProduct.id : (mongoose.Types.ObjectId.isValid(prodId) ? prodId : undefined),
+      name: catalogProduct ? catalogProduct.name : String(it.name || 'Product').slice(0, 80),
+      price: unitPrice,
       quantity: qty,
       size: String(it.size || 'M').slice(0, 10),
-      color: String(it.color || '').slice(0, 40),
-      image: String(it.image || '').slice(0, 500),
-    };
-  });
+      color: catalogProduct?.color || String(it.color || '').slice(0, 40),
+      image: catalogProduct?.image || String(it.image || '').slice(0, 500),
+    });
+  }
 
-  // Calculate discount if promo applied
+  // 4. Calculate discount if promo applied
   let discount = 0;
   const promoUpper = String(promoCode || '').trim().toUpperCase();
   if (promoUpper && PROMO_CODES[promoUpper]) {
@@ -68,30 +158,53 @@ async function createOrder(req, res) {
   const shippingFee = subtotal >= 1499 || (promoUpper === 'FREESHIP') ? 0 : 149;
   const total = Math.max(0, subtotal - discount + shippingFee);
 
+  // 5. Duplicate order prevention (debounce 15 seconds)
+  const fifteenSecAgo = new Date(Date.now() - 15000);
+  const recentDuplicate = await Order.findOne({
+    user: effectiveUser.id,
+    total,
+    createdAt: { $gte: fifteenSecAgo },
+  });
+
+  if (recentDuplicate) {
+    return res.status(200).json({
+      order: recentDuplicate,
+      token: newlyIssuedToken,
+      user: effectiveUser,
+      notice: 'Order already confirmed.',
+    });
+  }
+
+  // 6. Payment method configuration & simulation
   const paymentMethod = ['UPI', 'Card', 'COD', 'NetBanking'].includes(payment?.method)
     ? payment.method
-    : 'UPI';
+    : 'COD';
 
+  const isCod = paymentMethod === 'COD';
+  const transactionId = isCod
+    ? 'COD-PAY-ON-DELIVERY'
+    : 'TXN-DEMO-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+  const trackingNumber = 'KLOTH-' + Math.floor(100000 + Math.random() * 900000);
+
+  // 7. Create order record
   const order = await Order.create({
-    user: req.user.id,
-    customerName: req.user.name,
-    customerEmail: req.user.email,
+    user: effectiveUser.id,
+    customerName: effectiveUser.name || fullName,
+    customerEmail: effectiveUser.email,
     items: verifiedItems,
     shippingAddress: {
-      fullName: String(shippingAddress.fullName).trim(),
-      phone: String(shippingAddress.phone).trim(),
-      street: String(shippingAddress.street).trim(),
-      city: String(shippingAddress.city).trim(),
+      fullName,
+      phone,
+      street,
+      city,
       state: String(shippingAddress.state || 'Maharashtra').trim(),
-      postalCode: String(shippingAddress.postalCode).trim(),
+      postalCode,
     },
     payment: {
       method: paymentMethod,
-      status: paymentMethod === 'COD' ? 'pending' : 'completed',
-      transactionId:
-        paymentMethod === 'COD'
-          ? 'COD-PAY-ON-DELIVERY'
-          : 'TXN-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      status: isCod ? 'pending' : 'completed',
+      transactionId,
     },
     subtotal,
     discount,
@@ -99,18 +212,35 @@ async function createOrder(req, res) {
     shippingFee,
     total,
     status: 'Processing',
+    trackingNumber,
     carrier: 'Streetwear Express',
     estimatedDelivery: formatEstDelivery(4),
     statusHistory: [
       {
         status: 'Processing',
         timestamp: new Date(),
-        note: `Order received and confirmed. Payment method: ${paymentMethod}.`,
+        note: `Order received and confirmed. Payment mode: ${paymentMethod} (${isCod ? 'Cash on Delivery' : 'Demo Instant Settlement'}).`,
       },
     ],
   });
 
-  res.status(201).json({ order });
+  // 8. Decrement stock for ordered items
+  for (const it of verifiedItems) {
+    if (it.product && mongoose.Types.ObjectId.isValid(it.product)) {
+      try {
+        await Product.findByIdAndUpdate(it.product, {
+          $inc: { stock: -it.quantity },
+        });
+      } catch {}
+    }
+  }
+
+  res.status(201).json({
+    order,
+    token: newlyIssuedToken,
+    user: effectiveUser,
+    message: 'Order placed successfully! Tracking number generated.',
+  });
 }
 
 // GET /api/orders/mine
@@ -189,7 +319,19 @@ async function cancelOrder(req, res) {
   });
 
   await order.save();
-  res.json({ order, message: 'Order successfully cancelled.' });
+
+  // Restore inventory stock for cancelled items
+  if (Array.isArray(order.items)) {
+    for (const it of order.items) {
+      if (it.product && mongoose.Types.ObjectId.isValid(it.product)) {
+        try {
+          await Product.findByIdAndUpdate(it.product, { $inc: { stock: it.quantity } });
+        } catch {}
+      }
+    }
+  }
+
+  res.json({ order, message: 'Order successfully cancelled and stock restored.' });
 }
 
 // POST /api/orders/:id/return

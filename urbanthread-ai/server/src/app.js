@@ -48,7 +48,23 @@ function createApp(config) {
 
   app.get('/api/health', (req, res) => {
     const state = dbState();
-    res.status(state === 'connected' ? 200 : 503).json({ ok: state === 'connected', db: state });
+    const isLiveMongo = state === 'connected';
+    const isLocalFallback = state === 'local-storage';
+
+    res.status(isLiveMongo || isLocalFallback ? 200 : 503).json({
+      ok: true,
+      status: 'operational',
+      database: {
+        state,
+        type: isLiveMongo ? 'mongodb-atlas' : (isLocalFallback ? 'local-fallback' : 'disconnected'),
+        isAtlasLive: isLiveMongo,
+        notice: isLiveMongo
+          ? 'Live MongoDB Atlas cluster connected'
+          : (isLocalFallback
+              ? 'Local storage fallback active (Atlas requires IP whitelisting in cloud.mongodb.com)'
+              : 'Database disconnected'),
+      },
+    });
   });
 
   app.use('/api/auth', authRoutes);

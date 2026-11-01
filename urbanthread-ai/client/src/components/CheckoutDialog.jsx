@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Building, Truck, Tag, ArrowRight, Loader2 } from 'lucide-react';
+import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Building, Truck, Tag, ArrowRight, Loader2, Info } from 'lucide-react';
 import Img from './Img.jsx';
 import { formatINR, productAlt } from '../utils/format.js';
-import { api } from '../services/api.js';
+import { api, setToken } from '../services/api.js';
 
 export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlaced, initialPromo = '' }) {
   const [step, setStep] = useState('checkout'); // 'checkout' | 'success'
@@ -10,15 +10,17 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
   const [error, setError] = useState('');
   const [placedOrder, setPlacedOrder] = useState(null);
 
-  // Address state
+  // Address state with pre-filled defaults
   const [address, setAddress] = useState({
-    fullName: user?.name || '',
-    phone: user?.phone || '',
-    street: user?.address?.street || '',
-    city: user?.address?.city || '',
+    fullName: user?.name && user.name !== 'Guest Explorer' ? user.name : 'Kirtan Pal',
+    email: user?.email && !user?.isGuest ? user.email : 'customer@kloth.fashion',
+    phone: user?.phone || '9876543210',
+    street: user?.address?.street || 'Flat 402, High Street Atelier, Linking Road',
+    city: user?.address?.city || 'Mumbai',
     state: user?.address?.state || 'Maharashtra',
-    postalCode: user?.address?.postalCode || '',
+    postalCode: user?.address?.postalCode || '400050',
   });
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Promo code state
   const [promoCode, setPromoCode] = useState(initialPromo);
@@ -26,9 +28,8 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
   const [promoError, setPromoError] = useState('');
 
   // Payment method state
-  const [paymentMethod, setPaymentMethod] = useState('UPI'); // 'UPI' | 'Card' | 'NetBanking' | 'COD'
+  const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' | 'UPI' | 'Card' | 'NetBanking'
   const [upiId, setUpiId] = useState('');
-  const [upiVerified, setUpiVerified] = useState(false);
   const [card, setCard] = useState({ number: '', expiry: '', cvv: '', name: '' });
   const [bank, setBank] = useState('HDFC Bank');
 
@@ -74,22 +75,52 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
     e.preventDefault();
     setError('');
 
-    if (user?.isGuest) {
-      setError('You are currently exploring as a guest. Please sign in or create an account to place and track your orders.');
+    if (cart.length === 0) {
+      setError('Your shopping bag is empty.');
       return;
     }
 
-    if (!address.fullName || !address.phone || !address.street || !address.city || !address.postalCode) {
-      setError('Please fill in your complete delivery address and mobile number.');
-      return;
+    const errors = {};
+    if (!address.fullName || address.fullName.trim().length < 2) {
+      errors.fullName = 'Please enter your full name (at least 2 characters).';
+    }
+
+    const emailToUse = address.email || user?.email || '';
+    if (!emailToUse || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailToUse.trim())) {
+      errors.email = 'Please provide a valid email address.';
+    }
+
+    const sanitizedPhone = String(address.phone || '').trim().replace(/[\s-]/g, '');
+    if (!sanitizedPhone || !/^\+?[0-9]{10,14}$/.test(sanitizedPhone)) {
+      errors.phone = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    if (!address.street || address.street.trim().length < 4) {
+      errors.street = 'Please enter your full street/building delivery address.';
+    }
+
+    if (!address.city || address.city.trim().length < 2) {
+      errors.city = 'Please enter your delivery city.';
+    }
+
+    if (!address.postalCode || address.postalCode.trim().length < 4) {
+      errors.postalCode = 'Please enter a valid PIN/postal code.';
     }
 
     if (paymentMethod === 'Card') {
-      if (card.number.replace(/\s/g, '').length < 16 || !card.expiry || !card.cvv) {
-        setError('Please enter valid credit/debit card details.');
+      const cleanCard = card.number.replace(/\s/g, '');
+      if (cleanCard.length < 15 || !card.expiry || !card.cvv) {
+        setError('Please enter valid credit/debit card details (demo simulated).');
         return;
       }
     }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setError('Please fill out all required delivery fields highlighted in red below.');
+      return;
+    }
+    setFieldErrors({});
 
     setSubmitting(true);
     try {
@@ -103,17 +134,24 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
           color: p.color || '',
           image: p.image || '',
         })),
-        shippingAddress: address,
+        shippingAddress: {
+          ...address,
+          email: emailToUse.trim(),
+          phone: sanitizedPhone,
+        },
         payment: { method: paymentMethod },
         promoCode: appliedPromo,
       };
 
       const res = await api('/orders', { method: 'POST', body: payload });
+      if (res.token) {
+        setToken(res.token);
+      }
       setPlacedOrder(res.order);
       setStep('success');
-      if (onOrderPlaced) onOrderPlaced(res.order);
+      if (onOrderPlaced) onOrderPlaced(res.order, res.user);
     } catch (err) {
-      setError(err.message || 'Payment processing failed. Please try again.');
+      setError(err.message || 'Order placement failed. Please verify your details and try again.');
     } finally {
       setSubmitting(false);
     }
@@ -135,82 +173,146 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
             {error && (
               <div className="authError" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>{error}</div>
-                {user?.isGuest && (
-                  <button
-                    type="button"
-                    className="primary"
-                    style={{ alignSelf: 'flex-start', padding: '6px 14px', fontSize: '11px', marginTop: 4 }}
-                    onClick={() => {
-                      if (onClose) onClose();
-                      window.location.reload();
-                    }}
-                  >
-                    Go to Sign In / Register →
-                  </button>
-                )}
               </div>
             )}
 
-            <form onSubmit={handlePayAndPlace} className="checkoutForm">
+            <form noValidate onSubmit={handlePayAndPlace} className="checkoutForm">
               <div className="checkoutGrid">
                 {/* Left column: Address & Payment */}
                 <div className="checkoutLeft">
                   <section className="checkoutSection">
-                    <h3>1. Delivery Address</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <h3 style={{ margin: 0 }}>1. Delivery Address</h3>
+                      <button
+                        type="button"
+                        className="autoFillAddrBtn"
+                        onClick={() => {
+                          setAddress({
+                            fullName: 'Kirtan Pal',
+                            email: 'customer@kloth.fashion',
+                            phone: '9876543210',
+                            street: 'Flat 402, High Street Atelier, Linking Road',
+                            city: 'Mumbai',
+                            state: 'Maharashtra',
+                            postalCode: '400050',
+                          });
+                          setFieldErrors({});
+                          setError('');
+                        }}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: 4,
+                          background: '#111',
+                          color: '#fff',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        ⚡ Auto-fill Address
+                      </button>
+                    </div>
                     <div className="formRow">
                       <div className="formGroup">
                         <label>Full Name *</label>
                         <input
-                          required
+                          className={fieldErrors.fullName ? 'hasError' : ''}
                           value={address.fullName}
-                          onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                          placeholder="Kirtan Pal"
+                          onChange={(e) => {
+                            setAddress({ ...address, fullName: e.target.value });
+                            if (fieldErrors.fullName) setFieldErrors({ ...fieldErrors, fullName: '' });
+                          }}
+                          placeholder="Your Full Name"
                         />
+                        {fieldErrors.fullName && <span className="formFieldErrorMsg">{fieldErrors.fullName}</span>}
                       </div>
                       <div className="formGroup">
                         <label>Phone Number *</label>
                         <input
-                          required
+                          type="tel"
+                          className={fieldErrors.phone ? 'hasError' : ''}
                           value={address.phone}
-                          onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                          onChange={(e) => {
+                            setAddress({ ...address, phone: e.target.value });
+                            if (fieldErrors.phone) setFieldErrors({ ...fieldErrors, phone: '' });
+                          }}
                           placeholder="+91 98765 43210"
                         />
+                        {fieldErrors.phone && <span className="formFieldErrorMsg">{fieldErrors.phone}</span>}
                       </div>
+                    </div>
+                    <div className="formGroup">
+                      <label>Email Address (For Order Tracking & Invoices) *</label>
+                      <input
+                        type="email"
+                        className={fieldErrors.email ? 'hasError' : ''}
+                        value={address.email}
+                        onChange={(e) => {
+                          setAddress({ ...address, email: e.target.value });
+                          if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: '' });
+                        }}
+                        placeholder="yourname@gmail.com"
+                      />
+                      {fieldErrors.email && <span className="formFieldErrorMsg">{fieldErrors.email}</span>}
                     </div>
                     <div className="formGroup">
                       <label>Street Address / Flat / Landmark *</label>
                       <input
-                        required
+                        className={fieldErrors.street ? 'hasError' : ''}
                         value={address.street}
-                        onChange={(e) => setAddress({ ...address, street: e.target.value })}
+                        onChange={(e) => {
+                          setAddress({ ...address, street: e.target.value });
+                          if (fieldErrors.street) setFieldErrors({ ...fieldErrors, street: '' });
+                        }}
                         placeholder="House / Flat No., Street, Area"
                       />
+                      {fieldErrors.street && <span className="formFieldErrorMsg">{fieldErrors.street}</span>}
                     </div>
                     <div className="formRow">
                       <div className="formGroup">
                         <label>City *</label>
                         <input
-                          required
+                          className={fieldErrors.city ? 'hasError' : ''}
                           value={address.city}
-                          onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                          onChange={(e) => {
+                            setAddress({ ...address, city: e.target.value });
+                            if (fieldErrors.city) setFieldErrors({ ...fieldErrors, city: '' });
+                          }}
                           placeholder="Mumbai"
                         />
+                        {fieldErrors.city && <span className="formFieldErrorMsg">{fieldErrors.city}</span>}
                       </div>
                       <div className="formGroup">
                         <label>PIN Code *</label>
                         <input
-                          required
+                          className={fieldErrors.postalCode ? 'hasError' : ''}
                           value={address.postalCode}
-                          onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+                          onChange={(e) => {
+                            setAddress({ ...address, postalCode: e.target.value });
+                            if (fieldErrors.postalCode) setFieldErrors({ ...fieldErrors, postalCode: '' });
+                          }}
                           placeholder="400001"
                         />
+                        {fieldErrors.postalCode && <span className="formFieldErrorMsg">{fieldErrors.postalCode}</span>}
                       </div>
                     </div>
                   </section>
 
                   <section className="checkoutSection">
                     <h3>2. Select Payment Method</h3>
+                    <div className="demoCheckoutNotice" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f6f6f0', border: '1px solid #e0dfd5', borderRadius: 6, fontSize: 11, marginBottom: 12 }}>
+                      <Info size={14} style={{ color: '#555', flexShrink: 0 }} />
+                      <span><b>Notice:</b> Cash on Delivery (COD) supported across India. Online modes operate in secure sandbox demo checkout.</span>
+                    </div>
                     <div className="paymentTabs">
+                      <button
+                        type="button"
+                        className={'payTab ' + (paymentMethod === 'COD' ? 'active' : '')}
+                        onClick={() => setPaymentMethod('COD')}
+                      >
+                        <Truck size={16} /> Cash on Delivery (COD)
+                      </button>
                       <button
                         type="button"
                         className={'payTab ' + (paymentMethod === 'UPI' ? 'active' : '')}
@@ -232,16 +334,20 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
                       >
                         <Building size={16} /> NetBanking
                       </button>
-                      <button
-                        type="button"
-                        className={'payTab ' + (paymentMethod === 'COD' ? 'active' : '')}
-                        onClick={() => setPaymentMethod('COD')}
-                      >
-                        <Truck size={16} /> Cash on Delivery
-                      </button>
                     </div>
 
                     <div className="paymentDetails">
+                      {paymentMethod === 'COD' && (
+                        <div className="codBox" style={{ padding: '12px 14px', background: '#faf9f5', borderRadius: 8, border: '1px solid #e8e6dc' }}>
+                          <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111' }}>
+                            Pay at your doorstep upon package arrival.
+                          </p>
+                          <p style={{ margin: '4px 0 0', fontSize: 11, color: '#666' }}>
+                            Cash or UPI scan-to-pay accepted by our delivery associate on delivery.
+                          </p>
+                        </div>
+                      )}
+
                       {paymentMethod === 'UPI' && (
                         <div className="upiBox">
                           <p>Instant UPI payment via Google Pay, PhonePe, Paytm, or BHIM.</p>
@@ -249,20 +355,10 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
                             <input
                               placeholder="Enter UPI ID (e.g. mobile@upi)"
                               value={upiId}
-                              onChange={(e) => {
-                                setUpiId(e.target.value);
-                                setUpiVerified(e.target.value.includes('@'));
-                              }}
+                              onChange={(e) => setUpiId(e.target.value)}
                             />
-                            <button
-                              type="button"
-                              className="verifyBtn"
-                              onClick={() => setUpiVerified(upiId.includes('@'))}
-                            >
-                              {upiVerified ? '✓ Verified' : 'Verify'}
-                            </button>
                           </div>
-                          <span className="payNote">Or scan QR code at final checkout popup</span>
+                          <span className="payNote">Demo Mode: Order confirms immediately upon submission</span>
                         </div>
                       )}
 

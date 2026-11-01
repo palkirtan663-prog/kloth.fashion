@@ -11,13 +11,13 @@ services:
       - key: PORT
         value: 10000
       - key: MONGODB_URI
-        value: mongodb+srv://pbabal118_db_user:AgwiEfJOT1P0onMZ@cluster0.rmxwyny.mongodb.net/Kloth
+        sync: false
       - key: JWT_SECRET
-        value: 0ca4125f6cfdedcca6b76b7f84bf308e372db93ec80354b1f1887b75940c7712273ccf55fe41f59fe2f188cb169679dd
+        generateValue: true
       - key: ADMIN_EMAIL
-        value: admin@urbanthread.com
+        sync: false
       - key: ADMIN_PASSWORD
-        value: UrbanThread@2026!
+        sync: false
       - key: AUTO_SEED_PRODUCTS
         value: "true"
 
