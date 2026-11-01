@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: kloth-fashion
+    env: node
+    plan: free
+    buildCommand: npm --prefix urbanthread-ai install && npm --prefix urbanthread-ai/server install && npm --prefix urbanthread-ai/client install && npm --prefix urbanthread-ai run build
+    startCommand: npm --prefix urbanthread-ai/server start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        value: mongodb+srv://pbabal118_db_user:AgwiEfJOT1P0onMZ@cluster0.rmxwyny.mongodb.net/Kloth
+      - key: JWT_SECRET
+        value: 0ca4125f6cfdedcca6b76b7f84bf308e372db93ec80354b1f1887b75940c7712273ccf55fe41f59fe2f188cb169679dd
+      - key: ADMIN_EMAIL
+        value: admin@urbanthread.com
+      - key: ADMIN_PASSWORD
+        value: UrbanThread@2026!
+      - key: AUTO_SEED_PRODUCTS
+        value: "true"
+

@@ -32,6 +32,7 @@ import {
   Mail,
   MapPin,
   Clock,
+  ArrowUp,
 } from 'lucide-react';
 import { formatINR } from '../utils/format.js';
 
@@ -108,6 +109,7 @@ export default function StorePage({
   const [showWishlist, setShowWishlist] = useState(false);
   const [activePromo, setActivePromo] = useState('STREET20');
   const [toast, setToast] = useState('');
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // New Modals
   const [customRequestOpen, setCustomRequestOpen] = useState(false);
@@ -115,6 +117,15 @@ export default function StorePage({
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
 
   const cartRef = useRef(null);
+
+  // Scroll listener for back-to-top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Sync cart & wishlist to storage
   useEffect(() => {
@@ -371,38 +382,42 @@ export default function StorePage({
 
         {/* Global Streetwear Values Ticker */}
         <section className="ticker">
-          <span>50+ CURATED STREETWEAR PIECES</span>
-          <span>HEAVYWEIGHT 240+ GSM WAFFLE & FLEECE</span>
-          <span>7-DAY DOORSTEP RETURNS & EXCHANGES</span>
-          <span>FREE SHIPPING OVER ₹1,499</span>
-          <span>BESPOKE CUSTOM 1-OF-1 TAILORING</span>
+          <div className="tickerContainer">
+            <span>50+ CURATED STREETWEAR PIECES</span>
+            <span>HEAVYWEIGHT 240+ GSM WAFFLE & FLEECE</span>
+            <span>7-DAY DOORSTEP RETURNS & EXCHANGES</span>
+            <span>FREE SHIPPING OVER ₹1,499</span>
+            <span>BESPOKE CUSTOM 1-OF-1 TAILORING</span>
+          </div>
         </section>
 
         {/* ================= SECTION 1: TRENDING & POPULAR ================= */}
         {!showWishlist && !query && (
           <section className="curatedSection trendingSection" id="trending">
-            <div className="sectionHead">
-              <div>
-                <div className="curatedBadge highlight">
-                  <TrendingUp size={14} /> COMMUNITY DEMAND
+            <div className="sectionContainer">
+              <div className="sectionHead">
+                <div>
+                  <div className="curatedBadge highlight">
+                    <TrendingUp size={14} /> COMMUNITY DEMAND
+                  </div>
+                  <h2>Trending Now · Most Popular</h2>
+                  <p className="curatedSub">
+                    The most coveted streetwear pieces of the week. High-density fabrics, boxy silhouettes, and customer favorites.
+                  </p>
                 </div>
-                <h2>Trending Now · Most Popular</h2>
-                <p className="curatedSub">
-                  The most coveted streetwear pieces of the week. High-density fabrics, boxy silhouettes, and customer favorites.
-                </p>
               </div>
-            </div>
 
-            <div className="grid">
-              {trendingProducts.map((p) => (
-                <ProductCard
-                  key={`trend-${p.id}`}
-                  product={p}
-                  liked={liked.includes(p.id)}
-                  onToggleLike={toggleLike}
-                  onAdd={addToCart}
-                />
-              ))}
+              <div className="grid">
+                {trendingProducts.map((p) => (
+                  <ProductCard
+                    key={`trend-${p.id}`}
+                    product={p}
+                    liked={liked.includes(p.id)}
+                    onToggleLike={toggleLike}
+                    onAdd={addToCart}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
@@ -410,49 +425,55 @@ export default function StorePage({
         {/* ================= SECTION 2: NEW ARRIVALS & FRESH DROPS ================= */}
         {!showWishlist && !query && (
           <section className="curatedSection newArrivalsSection" id="new-arrivals">
-            <div className="sectionHead">
-              <div>
-                <div className="curatedBadge cyan">
-                  <Sparkles size={14} /> FRESH FROM THE DESIGN STUDIO
+            <div className="sectionContainer">
+              <div className="sectionHead">
+                <div>
+                  <div className="curatedBadge cyan">
+                    <Sparkles size={14} /> FRESH FROM THE DESIGN STUDIO
+                  </div>
+                  <h2>New Arrivals & Newly Launched</h2>
+                  <p className="curatedSub">
+                    Latest drop additions including acid-washed graphics, vintage skate tees, and tarnish-free stainless accessories.
+                  </p>
                 </div>
-                <h2>New Arrivals & Newly Launched</h2>
-                <p className="curatedSub">
-                  Latest drop additions including acid-washed graphics, vintage skate tees, and tarnish-free stainless accessories.
-                </p>
               </div>
-            </div>
 
-            <div className="grid">
-              {newArrivals.map((p) => (
-                <ProductCard
-                  key={`new-${p.id}`}
-                  product={p}
-                  liked={liked.includes(p.id)}
-                  onToggleLike={toggleLike}
-                  onAdd={addToCart}
-                />
-              ))}
+              <div className="grid">
+                {newArrivals.map((p) => (
+                  <ProductCard
+                    key={`new-${p.id}`}
+                    product={p}
+                    liked={liked.includes(p.id)}
+                    onToggleLike={toggleLike}
+                    onAdd={addToCart}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
 
         {/* ================= BESPOKE BANNER CALLOUT ================= */}
         {!showWishlist && !query && (
-          <section className="bespokePromoBanner">
-            <div className="bespokePromoContent">
-              <span className="bespokeEyebrow"><Scissors size={14} /> 1-OF-1 BESPOKE ATELIER</span>
-              <h2>Can't find your exact silhouette?</h2>
-              <p>
-                Our master tailors create custom streetwear garments crafted from 450 GSM French Terry, 14oz rigid skater denim,
-                or double-brushed flannels according to your exact measurements and design references.
-              </p>
-              <button
-                type="button"
-                className="primary bespokeCtaBtn"
-                onClick={() => setCustomRequestOpen(true)}
-              >
-                Submit Custom Design Request <Sparkles size={15} />
-              </button>
+          <section className="bespokeSection">
+            <div className="bespokeContainer">
+              <div className="bespokePromoBanner">
+                <div className="bespokePromoContent">
+                  <span className="bespokeEyebrow"><Scissors size={14} /> 1-OF-1 BESPOKE ATELIER</span>
+                  <h2>Can't find your exact silhouette?</h2>
+                  <p>
+                    Our master tailors create custom streetwear garments crafted from 450 GSM French Terry, 14oz rigid skater denim,
+                    or double-brushed flannels according to your exact measurements and design references.
+                  </p>
+                  <button
+                    type="button"
+                    className="primary bespokeCtaBtn"
+                    onClick={() => setCustomRequestOpen(true)}
+                  >
+                    Submit Custom Design Request <Sparkles size={15} />
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         )}
@@ -460,207 +481,211 @@ export default function StorePage({
         {/* ================= SECTION 3: CURATED COMPLETE OUTFITS ================= */}
         {!showWishlist && !query && completeOutfits.length > 0 && (
           <section className="curatedSection outfitsSection" id="outfits">
-            <div className="sectionHead">
-              <div>
-                <div className="curatedBadge gold">
-                  <Layers size={14} /> COMPLETE STREETWEAR ENSEMBLES
+            <div className="sectionContainer">
+              <div className="sectionHead">
+                <div>
+                  <div className="curatedBadge gold">
+                    <Layers size={14} /> COMPLETE STREETWEAR ENSEMBLES
+                  </div>
+                  <h2>Head-to-Toe Curated Outfits</h2>
+                  <p className="curatedSub">
+                    Pre-styled matching co-ords, layered skate ensembles, and utility sets crafted for effortless presence.
+                  </p>
                 </div>
-                <h2>Head-to-Toe Curated Outfits</h2>
-                <p className="curatedSub">
-                  Pre-styled matching co-ords, layered skate ensembles, and utility sets crafted for effortless presence.
-                </p>
               </div>
-            </div>
 
-            <div className="grid">
-              {completeOutfits.map((p) => (
-                <ProductCard
-                  key={`outfit-${p.id}`}
-                  product={p}
-                  liked={liked.includes(p.id)}
-                  onToggleLike={toggleLike}
-                  onAdd={addToCart}
-                />
-              ))}
+              <div className="grid">
+                {completeOutfits.map((p) => (
+                  <ProductCard
+                    key={`outfit-${p.id}`}
+                    product={p}
+                    liked={liked.includes(p.id)}
+                    onToggleLike={toggleLike}
+                    onAdd={addToCart}
+                  />
+                ))}
+              </div>
             </div>
           </section>
         )}
 
         {/* ================= SECTION 4: FULL SHOP CATALOGUE (50+ ITEMS) ================= */}
         <section className="shop" id="shop">
-          <div className="sectionHead">
-            <div>
-              <p className="eyebrow">{showWishlist ? 'SAVED WISHLIST' : 'THE FULL DROP ARCHIVE (50+ PIECES)'}</p>
-              <h2>{showWishlist ? 'Your Saved Wishlist Pieces' : 'Explore The Full Catalogue'}</h2>
-              <p className="sectionNote">
-                {showWishlist
-                  ? `${likedProducts.length} saved favorites`
-                  : `Showing ${visible.length} of ${products.length} fashion products`}
-              </p>
-            </div>
-
-            <div className="catalogueControls">
-              {!showWishlist && (
-                <div className="sortWrap">
-                  <SlidersHorizontal size={14} />
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    aria-label="Sort products"
-                  >
-                    <option value="featured">Sort: Featured</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="newest">Newest Drops</option>
-                  </select>
-                </div>
-              )}
-
-              {showWishlist && (
-                <button className="primary" onClick={() => setShowWishlist(false)}>
-                  ← View Full Catalogue
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Comprehensive Multi-Filter Bar */}
-          {!showWishlist && (
-            <div className="multiFilterBar">
-              {/* Category Filter Chips */}
-              <div className="categoryFilterScroll" role="group" aria-label="Filter by category">
-                {availableCats.map((c) => (
-                  <button
-                    className={'catChip ' + (cat === c ? 'active' : '')}
-                    aria-pressed={cat === c}
-                    onClick={() => setCat(c)}
-                    key={c}
-                  >
-                    {c} {c !== 'All' ? `(${products.filter(p => p.category === c).length})` : `(${products.length})`}
-                  </button>
-                ))}
+          <div className="shopContainer">
+            <div className="sectionHead">
+              <div>
+                <p className="eyebrow">{showWishlist ? 'SAVED WISHLIST' : 'THE FULL DROP ARCHIVE (50+ PIECES)'}</p>
+                <h2>{showWishlist ? 'Your Saved Wishlist Pieces' : 'Explore The Full Catalogue'}</h2>
+                <p className="sectionNote">
+                  {showWishlist
+                    ? `${likedProducts.length} saved favorites`
+                    : `Showing ${visible.length} of ${products.length} fashion products`}
+                </p>
               </div>
 
-              {/* Sub-Filters: Gender, Size, Price Range */}
-              <div className="subFiltersRow">
-                <div className="subFilterGroup">
-                  <span className="subFilterLabel">Audience:</span>
-                  {['All', 'Men', 'Women', 'Unisex'].map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      className={`filterPillBtn ${gender === g ? 'active' : ''}`}
-                      onClick={() => setGender(g)}
+              <div className="catalogueControls">
+                {!showWishlist && (
+                  <div className="sortWrap">
+                    <SlidersHorizontal size={14} />
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      aria-label="Sort products"
                     >
-                      {g}
-                    </button>
-                  ))}
-                </div>
+                      <option value="featured">Sort: Featured</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                      <option value="rating">Highest Rated</option>
+                      <option value="newest">Newest Drops</option>
+                    </select>
+                  </div>
+                )}
 
-                <div className="subFilterGroup">
-                  <span className="subFilterLabel">Size:</span>
-                  {SIZES_LIST.map((sz) => (
-                    <button
-                      key={sz}
-                      type="button"
-                      className={`filterPillBtn ${sizeFilter === sz ? 'active' : ''}`}
-                      onClick={() => setSizeFilter(sz)}
-                    >
-                      {sz}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="subFilterGroup">
-                  <span className="subFilterLabel">Price:</span>
-                  <button
-                    type="button"
-                    className={`filterPillBtn ${priceTier === 'All' ? 'active' : ''}`}
-                    onClick={() => setPriceTier('All')}
-                  >
-                    All
-                  </button>
-                  <button
-                    type="button"
-                    className={`filterPillBtn ${priceTier === 'under1000' ? 'active' : ''}`}
-                    onClick={() => setPriceTier('under1000')}
-                  >
-                    Under ₹1,000
-                  </button>
-                  <button
-                    type="button"
-                    className={`filterPillBtn ${priceTier === '1000to2000' ? 'active' : ''}`}
-                    onClick={() => setPriceTier('1000to2000')}
-                  >
-                    ₹1,000 – ₹2,000
-                  </button>
-                  <button
-                    type="button"
-                    className={`filterPillBtn ${priceTier === 'above2000' ? 'active' : ''}`}
-                    onClick={() => setPriceTier('above2000')}
-                  >
-                    ₹2,000+
-                  </button>
-                </div>
-
-                {(cat !== 'All' || gender !== 'All' || sizeFilter !== 'All' || priceTier !== 'All' || query) && (
-                  <button
-                    type="button"
-                    className="clearFiltersTextBtn"
-                    onClick={resetAllFilters}
-                  >
-                    Reset Filters
+                {showWishlist && (
+                  <button className="primary" onClick={() => setShowWishlist(false)}>
+                    ← View Full Catalogue
                   </button>
                 )}
               </div>
             </div>
-          )}
 
-          {status === 'loading' && (
-            <div className="grid" aria-busy="true" aria-label="Loading products">
-              {Array.from({ length: 8 }, (_, i) => <div className="skeleton" key={i} />)}
-            </div>
-          )}
+            {/* Comprehensive Multi-Filter Bar */}
+            {!showWishlist && (
+              <div className="multiFilterBar">
+                {/* Category Filter Chips */}
+                <div className="categoryFilterScroll" role="group" aria-label="Filter by category">
+                  {availableCats.map((c) => (
+                    <button
+                      className={'catChip ' + (cat === c ? 'active' : '')}
+                      aria-pressed={cat === c}
+                      onClick={() => setCat(c)}
+                      key={c}
+                    >
+                      {c} {c !== 'All' ? `(${products.filter(p => p.category === c).length})` : `(${products.length})`}
+                    </button>
+                  ))}
+                </div>
 
-          {status === 'error' && (
-            <div className="statusBox" role="alert">
-              <p><b>We couldn’t load the catalogue.</b></p>
-              <p>{error}</p>
-              <button className="primary" onClick={reload}>Try again</button>
-            </div>
-          )}
+                {/* Sub-Filters: Gender, Size, Price Range */}
+                <div className="subFiltersRow">
+                  <div className="subFilterGroup">
+                    <span className="subFilterLabel">Audience:</span>
+                    {['All', 'Men', 'Women', 'Unisex'].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        className={`filterPillBtn ${gender === g ? 'active' : ''}`}
+                        onClick={() => setGender(g)}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
 
-          {status === 'ready' && products.length === 0 && (
-            <div className="statusBox">
-              <p><b>The catalogue is empty.</b></p>
-              <p>No products were found. Reload to seed the 50+ item catalogue.</p>
-              <button className="primary" onClick={reload}>Reload Catalogue</button>
-            </div>
-          )}
+                  <div className="subFilterGroup">
+                    <span className="subFilterLabel">Size:</span>
+                    {SIZES_LIST.map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        className={`filterPillBtn ${sizeFilter === sz ? 'active' : ''}`}
+                        onClick={() => setSizeFilter(sz)}
+                      >
+                        {sz}
+                      </button>
+                    ))}
+                  </div>
 
-          {status === 'ready' && products.length > 0 && visible.length === 0 && (
-            <div className="statusBox">
-              <p><b>No pieces match your search or filters.</b></p>
-              <button className="primary" onClick={resetAllFilters}>
-                Clear all filters
-              </button>
-            </div>
-          )}
+                  <div className="subFilterGroup">
+                    <span className="subFilterLabel">Price:</span>
+                    <button
+                      type="button"
+                      className={`filterPillBtn ${priceTier === 'All' ? 'active' : ''}`}
+                      onClick={() => setPriceTier('All')}
+                    >
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      className={`filterPillBtn ${priceTier === 'under1000' ? 'active' : ''}`}
+                      onClick={() => setPriceTier('under1000')}
+                    >
+                      Under ₹1,000
+                    </button>
+                    <button
+                      type="button"
+                      className={`filterPillBtn ${priceTier === '1000to2000' ? 'active' : ''}`}
+                      onClick={() => setPriceTier('1000to2000')}
+                    >
+                      ₹1,000 – ₹2,000
+                    </button>
+                    <button
+                      type="button"
+                      className={`filterPillBtn ${priceTier === 'above2000' ? 'active' : ''}`}
+                      onClick={() => setPriceTier('above2000')}
+                    >
+                      ₹2,000+
+                    </button>
+                  </div>
 
-          {status === 'ready' && visible.length > 0 && (
-            <div className="grid">
-              {visible.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  liked={liked.includes(p.id)}
-                  onToggleLike={toggleLike}
-                  onAdd={addToCart}
-                />
-              ))}
-            </div>
-          )}
+                  {(cat !== 'All' || gender !== 'All' || sizeFilter !== 'All' || priceTier !== 'All' || query) && (
+                    <button
+                      type="button"
+                      className="clearFiltersTextBtn"
+                      onClick={resetAllFilters}
+                    >
+                      Reset Filters
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {status === 'loading' && (
+              <div className="grid" aria-busy="true" aria-label="Loading products">
+                {Array.from({ length: 8 }, (_, i) => <div className="skeleton" key={i} />)}
+              </div>
+            )}
+
+            {status === 'error' && (
+              <div className="statusBox" role="alert">
+                <p><b>We couldn’t load the catalogue.</b></p>
+                <p>{error}</p>
+                <button className="primary" onClick={reload}>Try again</button>
+              </div>
+            )}
+
+            {status === 'ready' && products.length === 0 && (
+              <div className="statusBox">
+                <p><b>The catalogue is empty.</b></p>
+                <p>No products were found. Reload to seed the 50+ item catalogue.</p>
+                <button className="primary" onClick={reload}>Reload Catalogue</button>
+              </div>
+            )}
+
+            {status === 'ready' && products.length > 0 && visible.length === 0 && (
+              <div className="statusBox">
+                <p><b>No pieces match your search or filters.</b></p>
+                <button className="primary" onClick={resetAllFilters}>
+                  Clear all filters
+                </button>
+              </div>
+            )}
+
+            {status === 'ready' && visible.length > 0 && (
+              <div className="grid">
+                {visible.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    liked={liked.includes(p.id)}
+                    onToggleLike={toggleLike}
+                    onAdd={addToCart}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Dynamic Recommendations Section */}
@@ -673,46 +698,50 @@ export default function StorePage({
 
         {/* Storefront Feature Trust Badges */}
         <section className="storeTrustBadges">
-          <div className="trustBadgeItem">
-            <Truck size={26} />
-            <div>
-              <strong>Pan-India Express Shipping</strong>
-              <small>Doorstep delivery in 2-4 days, free on ₹1,499+</small>
+          <div className="trustBadgesContainer">
+            <div className="trustBadgeItem">
+              <Truck size={26} />
+              <div>
+                <strong>Pan-India Express Shipping</strong>
+                <small>Doorstep delivery in 2-4 days, free on ₹1,499+</small>
+              </div>
             </div>
-          </div>
-          <div className="trustBadgeItem">
-            <RotateCcw size={26} />
-            <div>
-              <strong>7-Day Returns & Exchanges</strong>
-              <small>Hassle-free size swaps & full refunds</small>
+            <div className="trustBadgeItem">
+              <RotateCcw size={26} />
+              <div>
+                <strong>7-Day Returns & Exchanges</strong>
+                <small>Hassle-free size swaps & full refunds</small>
+              </div>
             </div>
-          </div>
-          <div className="trustBadgeItem">
-            <Scissors size={26} />
-            <div>
-              <strong>1-of-1 Bespoke Tailoring</strong>
-              <small>Custom fits crafted by master tailors</small>
+            <div className="trustBadgeItem">
+              <Scissors size={26} />
+              <div>
+                <strong>1-of-1 Bespoke Tailoring</strong>
+                <small>Custom fits crafted by master tailors</small>
+              </div>
             </div>
-          </div>
-          <div className="trustBadgeItem">
-            <ShieldCheck size={26} />
-            <div>
-              <strong>Verified Safe Checkout</strong>
-              <small>Instant UPI, Cards, NetBanking & COD</small>
+            <div className="trustBadgeItem">
+              <ShieldCheck size={26} />
+              <div>
+                <strong>Verified Safe Checkout</strong>
+                <small>Instant UPI, Cards, NetBanking & COD</small>
+              </div>
             </div>
           </div>
         </section>
 
         <section className="story" id="story">
-          <div>
-            <p className="eyebrow">KLOTH.FASHION MANIFESTO</p>
-            <h2>Clothes for the days you didn't plan.</h2>
+          <div className="storyContainer">
+            <div>
+              <p className="eyebrow">KLOTH.FASHION MANIFESTO</p>
+              <h2>Clothes for the days you didn't plan.</h2>
+            </div>
+            <p>
+              Kloth.fashion is an independent contemporary streetwear concept engineered around
+              durable 240+ GSM fabrics, versatile drop-shoulder layers, wide-profile baggy denim, and effortless
+              silhouettes. Built with intention. Crafted to repeat.
+            </p>
           </div>
-          <p>
-            Kloth.fashion is an independent contemporary streetwear concept engineered around
-            durable 240+ GSM fabrics, versatile drop-shoulder layers, wide-profile baggy denim, and effortless
-            silhouettes. Built with intention. Crafted to repeat.
-          </p>
         </section>
 
       </main>
@@ -840,6 +869,19 @@ export default function StorePage({
 
       {/* Floating Action Toast Notification */}
       {toast && <div className="floatingToast">{toast}</div>}
+
+      {/* Floating Back to Top Button */}
+      {showScrollTop && (
+        <button
+          type="button"
+          className="scrollToTopBtn"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+          title="Back to top"
+        >
+          <ArrowUp size={20} />
+        </button>
+      )}
 
       {/* Comprehensive Modern E-Commerce Footer */}
       <Footer

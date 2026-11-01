@@ -13,47 +13,49 @@ export default function Recommendations({ products = [], onAdd, liked = [], onTo
 
   return (
     <section className="recommendationsSection" id="recommendations">
-      <div className="sectionHead">
-        <div>
-          <p className="eyebrow"><Sparkles size={13} style={{ verticalAlign: -2 }} /> CURATED FOR YOUR FIT</p>
-          <h2>Recommended Pieces</h2>
-          <p className="recSub">Handpicked streetwear essentials designed to layer effortlessly with your wardrobe.</p>
+      <div className="sectionContainer">
+        <div className="sectionHead">
+          <div>
+            <p className="eyebrow"><Sparkles size={13} style={{ verticalAlign: -2 }} /> CURATED FOR YOUR FIT</p>
+            <h2>Recommended Pieces</h2>
+            <p className="recSub">Handpicked streetwear essentials designed to layer effortlessly with your wardrobe.</p>
+          </div>
         </div>
-      </div>
 
-      <div className="recGrid">
-        {recommended.map((p) => (
-          <div key={p.id} className="recCard">
-            <div className="recPicWrap">
-              <Img src={p.image} alt={productAlt(p)} label={p.name} width={400} height={500} />
-              {p.tag && <span className="recTag">{p.tag}</span>}
-              <button
-                className="recLikeBtn"
-                onClick={() => onToggleLike && onToggleLike(p.id)}
-                aria-label="Save to wishlist"
-              >
-                ♥
-              </button>
-            </div>
-            <div className="recMeta">
-              <div className="recInfo">
-                <span className="recCategory">{p.category}</span>
-                <h4>{p.name}</h4>
-                <div className="recRating"><Star size={11} fill="currentColor" /> {p.rating?.toFixed(1) || '4.8'}</div>
-              </div>
-              <div className="recAction">
-                <b>{formatINR(p.price)}</b>
+        <div className="recGrid">
+          {recommended.map((p) => (
+            <div key={p.id} className="recCard">
+              <div className="recPicWrap">
+                <Img src={p.image} alt={productAlt(p)} label={p.name} width={400} height={500} />
+                {p.tag && <span className="recTag">{p.tag}</span>}
                 <button
-                  className="recAddBtn"
-                  onClick={() => onAdd && onAdd({ ...p, quantity: 1, size: 'M' })}
-                  title="Add to Bag"
+                  className="recLikeBtn"
+                  onClick={() => onToggleLike && onToggleLike(p.id)}
+                  aria-label="Save to wishlist"
                 >
-                  <Plus size={15} /> Add
+                  ♥
                 </button>
               </div>
+              <div className="recMeta">
+                <div className="recInfo">
+                  <span className="recCategory">{p.category}</span>
+                  <h4>{p.name}</h4>
+                  <div className="recRating"><Star size={11} fill="currentColor" /> {p.rating?.toFixed(1) || '4.8'}</div>
+                </div>
+                <div className="recAction">
+                  <b>{formatINR(p.price)}</b>
+                  <button
+                    className="recAddBtn"
+                    onClick={() => onAdd && onAdd({ ...p, quantity: 1, size: 'M' })}
+                    title="Add to Bag"
+                  >
+                    <Plus size={15} /> Add
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

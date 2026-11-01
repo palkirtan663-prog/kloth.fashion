@@ -1,33 +1,64 @@
 import React, { useEffect, useState } from 'react';
 
 /*
-  Photo with lazy loading and a graceful fallback.
-  If the file is missing or fails to load, a labelled tile is shown instead of a broken-image icon.
-  Use eager for above-the-fold images (hero).
+  Photo with lazy loading, dual-fallback resilience, and graceful failure handling.
+  If the primary file is missing or blocked by network, it attempts fallbackSrc,
+  then gracefully displays a luxury metallic card fallback without collapsing layout.
 */
-export default function Img({ src, alt, label, sublabel, eager = false, width = 800, height = 1000 }) {
-  const [failed, setFailed] = useState(!src);
-  useEffect(() => { setFailed(!src); }, [src]);
+export default function Img({
+  src,
+  fallbackSrc = '',
+  alt = '',
+  label = 'KLOTH.FASHION',
+  sublabel = '',
+  eager = false,
+  width = 800,
+  height = 1000,
+  className = '',
+}) {
+  const [currentSrc, setCurrentSrc] = useState(src || fallbackSrc || '');
+  const [failed, setFailed] = useState(!src && !fallbackSrc);
+  const [triedFallback, setTriedFallback] = useState(false);
 
-  if (failed) {
+  useEffect(() => {
+    setCurrentSrc(src || fallbackSrc || '');
+    setFailed(!src && !fallbackSrc);
+    setTriedFallback(false);
+  }, [src, fallbackSrc]);
+
+  const handleError = () => {
+    if (fallbackSrc && !triedFallback && currentSrc !== fallbackSrc) {
+      setTriedFallback(true);
+      setCurrentSrc(fallbackSrc);
+    } else {
+      setFailed(true);
+    }
+  };
+
+  if (failed || !currentSrc) {
     return (
-      <div className="imgFallback" role="img" aria-label={alt || label || 'Image unavailable'}>
-        <b>{label || 'KLOTH.FASHION'}</b>
-
-        {sublabel && <small>{sublabel}</small>}
+      <div className={`imgFallback ${className}`} role="img" aria-label={alt || label || 'Image unavailable'}>
+        <div className="imgFallbackContent">
+          <span className="imgFallbackAtelierBadge">EST. 2026 · ATELIER</span>
+          <b>{label}</b>
+          {sublabel && <small>{sublabel}</small>}
+          <span className="imgFallbackWatermark">KLOTH.FASHION</span>
+        </div>
       </div>
     );
   }
+
   return (
     <img
-      src={src}
-      alt={alt || ''}
+      src={currentSrc}
+      alt={alt || label || 'Fashion piece'}
       width={width}
       height={height}
       loading={eager ? 'eager' : 'lazy'}
       fetchPriority={eager ? 'high' : 'auto'}
       decoding="async"
-      onError={() => setFailed(true)}
+      className={className}
+      onError={handleError}
     />
   );
 }

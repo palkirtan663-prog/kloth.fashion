@@ -166,6 +166,22 @@ export default function AuthPage({ onAuth, notice = '' }) {
     setSuccessMsg('');
   };
 
+  const continueAsGuest = () => {
+    onAuth(
+      {
+        user: {
+          id: 'guest',
+          name: 'Guest Explorer',
+          email: 'guest@kloth.fashion',
+          role: 'user',
+          isGuest: true,
+        },
+        token: '',
+      },
+      { requestedPortal: 'customer' }
+    );
+  };
+
   return (
     <div className={`authPage ${isAdmin ? 'adminPortalTheme' : 'customerPortalTheme'}`}>
       {/* Brand Aesthetic Side Panel */}
@@ -486,9 +502,25 @@ export default function AuthPage({ onAuth, notice = '' }) {
                 </button>
               </div>
             ) : (
-              <button type="button" className="quickFillBtn" onClick={quickFillCustomer}>
-                Auto-fill Customer Credentials (customer@kloth.fashion)
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+                <button type="button" className="quickFillBtn" onClick={quickFillCustomer}>
+                  Auto-fill Customer Credentials (customer@kloth.fashion)
+                </button>
+                <button
+                  type="button"
+                  className="quickFillBtn"
+                  onClick={continueAsGuest}
+                  style={{
+                    background: '#111',
+                    color: '#fff',
+                    borderColor: '#111',
+                    fontWeight: 700,
+                  }}
+                >
+                  <Sparkles size={13} style={{ display: 'inline', marginRight: 5, verticalAlign: '-2px' }} />
+                  Explore Store as Guest (Instant Preview)
+                </button>
+              </div>
             )}
           </div>
 

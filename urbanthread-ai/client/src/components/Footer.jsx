@@ -92,32 +92,34 @@ export default function Footer({
     <footer className="siteFooter" id="footer" role="contentinfo">
       {/* Upper Service Highlights Strip */}
       <div className="footerServiceStrip">
-        <div className="footerServiceItem">
-          <Truck size={18} />
-          <div>
-            <strong>Free Express Delivery</strong>
-            <small>On orders over ₹1,499 across India</small>
+        <div className="footerServiceContainer">
+          <div className="footerServiceItem">
+            <Truck size={18} />
+            <div>
+              <strong>Free Express Delivery</strong>
+              <small>On orders over ₹1,499 across India</small>
+            </div>
           </div>
-        </div>
-        <div className="footerServiceItem">
-          <RotateCcw size={18} />
-          <div>
-            <strong>7-Day Doorstep Returns</strong>
-            <small>Hassle-free size & silhouette exchanges</small>
+          <div className="footerServiceItem">
+            <RotateCcw size={18} />
+            <div>
+              <strong>7-Day Doorstep Returns</strong>
+              <small>Hassle-free size & silhouette exchanges</small>
+            </div>
           </div>
-        </div>
-        <div className="footerServiceItem">
-          <ShieldCheck size={18} />
-          <div>
-            <strong>Authentic Heavyweight Garments</strong>
-            <small>240+ to 450 GSM luxury fabrics</small>
+          <div className="footerServiceItem">
+            <ShieldCheck size={18} />
+            <div>
+              <strong>Authentic Heavyweight Garments</strong>
+              <small>240+ to 450 GSM luxury fabrics</small>
+            </div>
           </div>
-        </div>
-        <div className="footerServiceItem">
-          <Sparkles size={18} />
-          <div>
-            <strong>1-of-1 Bespoke Tailoring</strong>
-            <small>Custom streetwear stitched to your specs</small>
+          <div className="footerServiceItem">
+            <Sparkles size={18} />
+            <div>
+              <strong>1-of-1 Bespoke Tailoring</strong>
+              <small>Custom streetwear stitched to your specs</small>
+            </div>
           </div>
         </div>
       </div>
@@ -504,30 +506,32 @@ export default function Footer({
 
       {/* Bottom Footer Bar */}
       <div className="footerBottom">
-        <div className="footerCopyright">
-          <p>© 2026 Kloth.fashion. All rights reserved.</p>
-        </div>
+        <div className="footerBottomContainer">
+          <div className="footerCopyright">
+            <p>© 2026 Kloth.fashion. All rights reserved.</p>
+          </div>
 
-        <div className="footerLegalLinks">
-          <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('terms')}>
-            Privacy Policy
-          </button>
-          <span className="footerLegalSep">·</span>
-          <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('terms')}>
-            Terms and Conditions
-          </button>
-          <span className="footerLegalSep">·</span>
-          <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('returns')}>
-            Refund and Return Policy
-          </button>
-        </div>
+          <div className="footerLegalLinks">
+            <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('terms')}>
+              Privacy Policy
+            </button>
+            <span className="footerLegalSep">·</span>
+            <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('terms')}>
+              Terms and Conditions
+            </button>
+            <span className="footerLegalSep">·</span>
+            <button type="button" className="footerLegalBtn" onClick={() => onOpenHelpCenter?.('returns')}>
+              Refund and Return Policy
+            </button>
+          </div>
 
-        {/* Supported Payment Badges: UPI, Cards, NetBanking, Cash on Delivery */}
-        <div className="footerPaymentMethods" aria-label="Supported Payment Methods">
-          <span className="paymentBadge upiBadge" title="Unified Payments Interface (UPI)">UPI</span>
-          <span className="paymentBadge cardsBadge" title="Debit & Credit Cards (Visa, Mastercard, RuPay)">CARDS</span>
-          <span className="paymentBadge netBankingBadge" title="Net Banking">NETBANKING</span>
-          <span className="paymentBadge codBadge" title="Cash on Delivery">CASH ON DELIVERY</span>
+          {/* Supported Payment Badges: UPI, Cards, NetBanking, Cash on Delivery */}
+          <div className="footerPaymentMethods" aria-label="Supported Payment Methods">
+            <span className="paymentBadge upiBadge" title="Unified Payments Interface (UPI)">UPI</span>
+            <span className="paymentBadge cardsBadge" title="Debit & Credit Cards (Visa, Mastercard, RuPay)">CARDS</span>
+            <span className="paymentBadge netBankingBadge" title="Net Banking">NETBANKING</span>
+            <span className="paymentBadge codBadge" title="Cash on Delivery">CASH ON DELIVERY</span>
+          </div>
         </div>
       </div>
     </footer>

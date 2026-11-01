@@ -74,6 +74,11 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
     e.preventDefault();
     setError('');
 
+    if (user?.isGuest) {
+      setError('You are currently exploring as a guest. Please sign in or create an account to place and track your orders.');
+      return;
+    }
+
     if (!address.fullName || !address.phone || !address.street || !address.city || !address.postalCode) {
       setError('Please fill in your complete delivery address and mobile number.');
       return;
@@ -127,7 +132,24 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
               <button onClick={onClose} aria-label="Close checkout"><X size={20} /></button>
             </div>
 
-            {error && <div className="authError">{error}</div>}
+            {error && (
+              <div className="authError" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div>{error}</div>
+                {user?.isGuest && (
+                  <button
+                    type="button"
+                    className="primary"
+                    style={{ alignSelf: 'flex-start', padding: '6px 14px', fontSize: '11px', marginTop: 4 }}
+                    onClick={() => {
+                      if (onClose) onClose();
+                      window.location.reload();
+                    }}
+                  >
+                    Go to Sign In / Register →
+                  </button>
+                )}
+              </div>
+            )}
 
             <form onSubmit={handlePayAndPlace} className="checkoutForm">
               <div className="checkoutGrid">

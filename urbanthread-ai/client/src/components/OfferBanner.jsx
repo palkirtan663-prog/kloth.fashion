@@ -35,32 +35,34 @@ export default function OfferBanner({ onApplyCode }) {
 
   return (
     <div className="liveOfferBar">
-      <div className="offerTicker">
-        <div className="offerHighlight">
-          <span className="livePulse"></span>
-          <b>LIVE DROP OFFERS</b>
-          <span className="offerSep">/</span>
-          <span className="countdownWrap">
-            <Clock size={13} />
-            <span>FLASH SALE ENDS IN</span>
-            <span className="clockDigits">{pad(timeLeft.hours)}h : {pad(timeLeft.minutes)}m : {pad(timeLeft.seconds)}s</span>
-          </span>
-        </div>
+      <div className="offerContainer">
+        <div className="offerTicker">
+          <div className="offerHighlight">
+            <span className="livePulse"></span>
+            <b>LIVE DROP OFFERS</b>
+            <span className="offerSep">/</span>
+            <span className="countdownWrap">
+              <Clock size={13} />
+              <span>FLASH SALE ENDS IN</span>
+              <span className="clockDigits">{pad(timeLeft.hours)}h : {pad(timeLeft.minutes)}m : {pad(timeLeft.seconds)}s</span>
+            </span>
+          </div>
 
-        <div className="offerChips">
-          {offers.map((o) => (
-            <button
-              key={o.code}
-              className={'offerChip ' + (copiedCode === o.code ? 'copied' : '')}
-              onClick={() => handleCopy(o.code)}
-              title={`Click to copy & apply ${o.code}`}
-            >
-              <Tag size={12} />
-              <span className="chipCode">{o.code}</span>
-              <span className="chipTitle">{o.title}</span>
-              {copiedCode === o.code ? <Check size={12} className="copyIcon" /> : <Copy size={11} className="copyIcon" />}
-            </button>
-          ))}
+          <div className="offerChips">
+            {offers.map((o) => (
+              <button
+                key={o.code}
+                className={'offerChip ' + (copiedCode === o.code ? 'copied' : '')}
+                onClick={() => handleCopy(o.code)}
+                title={`Click to copy & apply ${o.code}`}
+              >
+                <Tag size={12} />
+                <span className="chipCode">{o.code}</span>
+                <span className="chipTitle">{o.title}</span>
+                {copiedCode === o.code ? <Check size={12} className="copyIcon" /> : <Copy size={11} className="copyIcon" />}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       {copiedCode && (

@@ -102,6 +102,10 @@ export default function UserPanel({
   }, [open, user, initialTab]);
 
   const loadOrders = async () => {
+    if (user?.isGuest) {
+      setOrders([]);
+      return;
+    }
     setLoadingOrders(true);
     try {
       const res = await api('/orders/mine');
@@ -114,6 +118,10 @@ export default function UserPanel({
   };
 
   const loadCustomRequests = async () => {
+    if (user?.isGuest) {
+      setCustomRequests([]);
+      return;
+    }
     setLoadingCustom(true);
     try {
       const res = await api('/custom-requests/mine');
@@ -126,6 +134,10 @@ export default function UserPanel({
   };
 
   const loadTickets = async () => {
+    if (user?.isGuest) {
+      setTickets([]);
+      return;
+    }
     setLoadingTickets(true);
     try {
       const res = await api('/support/tickets/mine');
@@ -194,6 +206,10 @@ export default function UserPanel({
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    if (user?.isGuest) {
+      setProfileMsg('Please create an account or sign in to save your delivery address and preferences.');
+      return;
+    }
     setSavingProfile(true);
     setProfileMsg('');
     try {
@@ -271,6 +287,23 @@ export default function UserPanel({
               <Heart size={15} /> Wishlist ({likedProducts.length})
             </button>
           </div>
+
+          {user?.isGuest && (
+            <div style={{ background: '#f5f4ef', borderBottom: '1px solid #deddd6', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+              <span>You are browsing as a guest. Sign in to save orders, profile details, and bespoke tailoring quotes.</span>
+              <button
+                type="button"
+                className="primary"
+                style={{ padding: '6px 14px', fontSize: '11px', whiteSpace: 'nowrap', marginLeft: 12 }}
+                onClick={() => {
+                  onClose();
+                  if (onLogout) onLogout();
+                }}
+              >
+                Sign In / Register →
+              </button>
+            </div>
+          )}
 
           <div className="userPanelBody">
             {/* TAB 1: ORDERS */}

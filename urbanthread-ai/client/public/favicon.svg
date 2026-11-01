@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d8ff3e" />
+      <stop offset="100%" stop-color="#b2e610" />
+    </linearGradient>
+  </defs>
+  <!-- Background squircle -->
+  <rect width="64" height="64" rx="16" fill="#111111" />
+  
+  <!-- Subtle inner border -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#262626" stroke-width="1.5" />
+  
+  <!-- Stylized Kloth 'K' Monogram -->
+  <path d="M 18 16 L 24 16 L 24 48 L 18 48 Z" fill="#ffffff" />
+  <path d="M 24 33 L 37 16 L 45 16 L 29 36 Z" fill="#ffffff" />
+  <path d="M 27 34 L 46 48 L 38 48 L 24 38 Z" fill="#ffffff" />
+  
+  <!-- Neon Accent Dot -->
+  <circle cx="46" cy="18" r="4.5" fill="url(#neonGlow)" />
+</svg>
+

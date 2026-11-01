@@ -16,7 +16,7 @@ const INITIAL_BANNERS = [
     title: 'DROP 02: THE METROPOLIS OVERSIZED EDIT',
     subtitle: 'Heavy 450 GSM French Terry Hoodies, Structured Boxy Tees & Acid Mineral Washes',
     badge: 'NEW DROP 02 LIVE',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1600&q=80',
+    image: '/images/hero.jpg',
     ctaText: 'Explore Collection',
     ctaLink: '#shop',
     active: true,
@@ -29,7 +29,7 @@ const INITIAL_BANNERS = [
     title: 'WINTER STREETWEAR & OVERSIZED FLANNELS',
     subtitle: 'Double-brushed heavy flannels and vintage skater silhouettes crafted for effortless layering',
     badge: 'TRENDING NOW',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1600&q=80',
+    image: '/images/field-overshirt.jpg',
     ctaText: 'Shop Trending',
     ctaLink: '#trending',
     active: true,
@@ -42,7 +42,7 @@ const INITIAL_BANNERS = [
     title: 'LUXURY ARTISAN JEWELRY & CHAINS',
     subtitle: 'Solid Cuban Links, Baroque Freshwater Pearls & Industrial Streetwear Hardware',
     badge: 'ACCESSORIES EXCLUSIVE',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1600&q=80',
+    image: '/images/jewelry-hero.jpg',
     ctaText: 'View Accessories',
     ctaLink: '#shop',
     active: true,
@@ -55,7 +55,7 @@ const INITIAL_BANNERS = [
     title: 'CUSTOM CLOTHING & BESPOKE ATELIER',
     subtitle: 'Have a design in mind? Upload your reference photo and let our master tailors stitch it for you.',
     badge: 'DESIGN YOUR OWN',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80',
+    image: '/images/afterhours-overshirt.jpg',
     ctaText: 'Request Your Style',
     ctaLink: '#custom-clothing',
     active: true,
@@ -223,10 +223,21 @@ function loadFromDisk(config = {}) {
         createdAt: new Date().toISOString(),
       });
     }
-    // Automatically guarantee palkirtan663@gmail.com has admin role
+    // Automatically guarantee palkirtan663@gmail.com exists and has admin role
     const kirtanUser = inMemoryDb.users.find(u => u.email.toLowerCase() === 'palkirtan663@gmail.com');
     if (kirtanUser) {
       kirtanUser.role = 'admin';
+      if (!kirtanUser.passwordHash) kirtanUser.passwordHash = adminHash;
+    } else {
+      inMemoryDb.users.push({
+        _id: '65f00000000000000000003a',
+        id: '65f00000000000000000003a',
+        name: 'Kirtan Pal',
+        email: 'palkirtan663@gmail.com',
+        passwordHash: adminHash,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
+      });
     }
   } else {
 
@@ -245,6 +256,15 @@ function loadFromDisk(config = {}) {
         id: '65f00000000000000000001a',
         name: 'Kloth.fashion Admin',
         email: 'admin@kloth.fashion',
+        passwordHash: adminHash,
+        role: 'admin',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        _id: '65f00000000000000000003a',
+        id: '65f00000000000000000003a',
+        name: 'Kirtan Pal',
+        email: 'palkirtan663@gmail.com',
         passwordHash: adminHash,
         role: 'admin',
         createdAt: new Date().toISOString(),

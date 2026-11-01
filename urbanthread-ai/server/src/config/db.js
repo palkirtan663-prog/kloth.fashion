@@ -32,11 +32,15 @@ async function connectDB(uri) {
   mongoose.set('strictQuery', true);
   console.log(`[db] Connecting to ${redactUri(uri)} ...`);
   try {
-    await mongoose.connect(uri, {
+    const connectPromise = mongoose.connect(uri, {
       serverSelectionTimeoutMS: 3500, // fail fast with clear fallback instead of hanging
       bufferTimeoutMS: 4000,
       maxPoolSize: 10,
     });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database connection timed out after 5000ms')), 5000)
+    );
+    await Promise.race([connectPromise, timeoutPromise]);
   } catch (err) {
     const wrapped = new Error(describeConnectionError(err));
     wrapped.cause = err;

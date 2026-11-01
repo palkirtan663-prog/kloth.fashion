@@ -104,6 +104,16 @@ export default function Header({
   const clothingTimeoutRef = useRef(null);
   const accessoriesTimeoutRef = useRef(null);
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Rotating top announcement banner (every 5 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
@@ -170,7 +180,7 @@ export default function Header({
   const activeAnnouncement = ANNOUNCEMENTS[activeAnnouncementIdx];
 
   return (
-    <header className="siteHeader" role="banner">
+    <header className={`siteHeader ${isScrolled ? 'headerScrolled' : ''}`} role="banner">
       {/* Admin Preview Mode Floating Bar */}
       {isAdminPreview && (
         <div className="adminPreviewTopBar" role="region" aria-label="Administrator Preview Notice">
@@ -458,12 +468,31 @@ export default function Header({
                 <span className="userFirstName desktopOnly">
                   {user.name ? user.name.split(' ')[0] : 'Account'}
                 </span>
-                {user.role === 'admin' && (
+                {user?.isGuest ? (
+                  <span
+                    className="guestSignInPill desktopOnly"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onLogout) onLogout();
+                    }}
+                    style={{
+                      fontSize: '11px',
+                      background: 'var(--accent)',
+                      color: '#111',
+                      padding: '3px 8px',
+                      borderRadius: '3px',
+                      fontWeight: 700,
+                      marginLeft: 4,
+                    }}
+                  >
+                    Sign In
+                  </span>
+                ) : user?.role === 'admin' ? (
                   <span className="adminRolePill desktopOnly" title="Administrator">
                     <Shield size={11} />
                     <span>OWNER</span>
                   </span>
-                )}
+                ) : null}
               </button>
             </div>
           </div>

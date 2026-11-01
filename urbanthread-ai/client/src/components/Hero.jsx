@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Sparkles, TrendingUp, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import {
+  ArrowRight,
+  Sparkles,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  ShoppingBag,
+  Rotate3d,
+  ShieldCheck,
+  Layers,
+} from 'lucide-react';
 import { api } from '../services/api.js';
 import Img from './Img.jsx';
 import Tilt from './Tilt.jsx';
@@ -10,7 +20,8 @@ const DEFAULT_SLIDES = [
     title: 'Engineered to move.\nBuilt to repeat.',
     subtitle: 'Drop 02 Metropolis Archive: 450 GSM French Terry Hoodies, Textured Waffle Tees & Curved Barrel Jeans.',
     badge: 'NEW DROP 02 LIVE',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/hero.jpg',
+    fallbackImage: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=1200&q=80',
     ctaText: 'Explore Trending Drops',
     ctaLink: '#trending',
     secondaryCtaText: 'New Arrivals (50+ Pieces)',
@@ -22,7 +33,8 @@ const DEFAULT_SLIDES = [
     title: 'Winter Streetwear &\nGrunge Flannels.',
     subtitle: 'Ultra-heavy double-brushed cotton flannel overshirts cut with slouchy drop shoulders and skater drape.',
     badge: 'TRENDING COLLECTION',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/field-overshirt.jpg',
+    fallbackImage: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
     ctaText: 'Shop Flannels & Shirts',
     ctaLink: '#shop',
     secondaryCtaText: 'View Street Pants',
@@ -34,12 +46,26 @@ const DEFAULT_SLIDES = [
     title: 'Bespoke Artisan\nJewelry & Hardware.',
     subtitle: 'Solid Cuban Links, Baroque Freshwater Pearls & Industrial Chrome Chains to elevate any minimalist fit.',
     badge: 'ACCESSORIES EXCLUSIVE',
-    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80',
+    image: '/images/jewelry-hero.jpg',
+    fallbackImage: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80',
     ctaText: 'Explore Jewelry Drop',
     ctaLink: '#shop',
     secondaryCtaText: 'Custom Clothing Request',
     secondaryCtaLink: '#custom',
     tagline: 'HANDCRAFTED FINISH',
+  },
+  {
+    id: 's4',
+    title: 'Custom Clothing &\nBespoke Atelier.',
+    subtitle: 'Have a design reference? Master streetwear tailors craft your 1-of-1 silhouette to exact millimeter measurements.',
+    badge: '1-OF-1 BESPOKE',
+    image: '/images/afterhours-overshirt.jpg',
+    fallbackImage: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80',
+    ctaText: 'Custom Fit Request',
+    ctaLink: '#custom',
+    secondaryCtaText: 'Explore Archive',
+    secondaryCtaLink: '#shop',
+    tagline: 'PRIVATE ATELIER',
   },
 ];
 
@@ -58,7 +84,10 @@ export default function Hero({ onOpenCustomRequest }) {
             title: b.title.replace('\\n', '\n'),
             subtitle: b.subtitle,
             badge: b.badge || 'SPECIAL DROP',
-            image: b.image,
+            image: b.image.includes('1599643478518') ? '/images/jewelry-hero.jpg' : b.image,
+            fallbackImage: b.image.includes('1599643478518') || b.badge?.includes('ACCESSORIES')
+              ? '/images/jewelry-hero.jpg'
+              : '/images/hero.jpg',
             ctaText: b.ctaText || 'Shop Now',
             ctaLink: b.ctaLink || '#shop',
             secondaryCtaText: 'Explore Collection',
@@ -90,7 +119,8 @@ export default function Hero({ onOpenCustomRequest }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="heroCopy">
+      <div className="heroContainer">
+        <div className="heroCopy">
         <div className="heroEyebrowRow">
           <span className="eyebrowBadge"><Sparkles size={13} /> {slide.badge}</span>
           <span className="heroSeason">{slide.tagline}</span>
@@ -176,23 +206,111 @@ export default function Hero({ onOpenCustomRequest }) {
         </div>
       </div>
 
-      <Tilt className="heroCard">
-        <Img
-          key={slide.image}
-          src={slide.image}
-          alt={slide.title}
-          label="KLOTH.FASHION"
-          sublabel={slide.badge}
+      {/* Interactive 3D Rotation Showcase & Exhibition Stage */}
+      <div className="hero3DStage">
+        {/* Ambient atmospheric lighting aura behind the card */}
+        <div className="heroStageAura" />
 
-          eager
-          width={900}
-          height={1100}
-        />
-        <div className="heroFloatingBadge">
-          <span>{slide.badge}</span>
-          <strong>GEN-Z STREETWEAR ARCHIVE</strong>
+        {/* Blueprint Framing Corner Crosshairs */}
+        <div className="stageCrosshair stageCrossTopLeft">+</div>
+        <div className="stageCrosshair stageCrossTopRight">+</div>
+        <div className="stageCrosshair stageCrossBottomLeft">+</div>
+        <div className="stageCrosshair stageCrossBottomRight">+</div>
+
+        {/* Floating Spec Tag 1: Top-Left Luxury Material Specs */}
+        <div className="floatingSpecCard specCardTop">
+          <div className="specCardIcon">
+            <Sparkles size={14} />
+          </div>
+          <div className="specCardText">
+            <span className="specCardLabel">CRAFT SPECIFICATION</span>
+            <strong>Heavyweight 240+ GSM & Solid 925 Silver</strong>
+            <small>Handcrafted in Mumbai Studio</small>
+          </div>
         </div>
-      </Tilt>
+
+        {/* Centerpiece 3D Card Stage */}
+        <div className="heroCardWrapper">
+          <Tilt className="heroCard" autoRotate={true} maxTilt={24} perspective={1100}>
+            <div className="hero3DCardInner">
+              <Img
+                key={slide.image}
+                src={slide.image}
+                fallbackSrc={slide.fallbackImage || '/images/jewelry-hero.jpg'}
+                alt={slide.title}
+                label="KLOTH.FASHION"
+                sublabel={slide.badge}
+                eager
+                width={900}
+                height={1100}
+              />
+              {/* Dynamic specular light reflection sheen */}
+              <div className="hero3DSheen" />
+
+              {/* 3D Floating Tag Badges with multi-layer depth */}
+              <div className="heroFloatingBadge">
+                <span>{slide.badge}</span>
+                <strong>GEN-Z STREETWEAR ARCHIVE</strong>
+              </div>
+
+              {/* 3D Rotation Interactive Pill */}
+              <div className="hero3DControlPill" title="Click to spin 360°">
+                <Rotate3d size={13} className="spinIcon3D" />
+                <span>3D ROTATION · CLICK TO SPIN</span>
+              </div>
+            </div>
+          </Tilt>
+          {/* Ambient 3D ground shadow */}
+          <div className="hero3DShadow" />
+        </div>
+
+        {/* Floating Spec Tag 2: Bottom-Left Drop Provenance */}
+        <div className="floatingSpecCard specCardBottom">
+          <div className="specCardIcon highlightIcon">
+            <ShieldCheck size={14} />
+          </div>
+          <div className="specCardText">
+            <span className="specCardLabel">DROP PROVENANCE</span>
+            <strong>1-of-1 Atelier Cut · Limited Run</strong>
+            <small>7-Day Doorstep Returns & Exchanges</small>
+          </div>
+        </div>
+
+        {/* Companion Drop Preview Rail (Fills the right side of the 3D card) */}
+        <div className="heroSideDropRail">
+          <div className="sideRailTitle">
+            <Layers size={12} />
+            <span>DROP COMPANIONS</span>
+          </div>
+          <div className="sideRailCards">
+            <a href="#trending" className="sideRailItem">
+              <img src="/images/noir-oversized-tee.jpg" alt="Noir Boxy Tee" />
+              <div className="sideRailInfo">
+                <b>Noir Box Tee</b>
+                <span className="sideRailGsm">280 GSM Waffle</span>
+                <strong>₹999</strong>
+              </div>
+            </a>
+            <a href="#new-arrivals" className="sideRailItem">
+              <img src="/images/signal-hoodie.jpg" alt="Signal Hoodie" />
+              <div className="sideRailInfo">
+                <b>Signal Heavy Hoodie</b>
+                <span className="sideRailGsm">450 GSM French Terry</span>
+                <strong>₹2,499</strong>
+              </div>
+            </a>
+            <a href="#shop" className="sideRailItem">
+              <img src="/images/studio-cargo.jpg" alt="Studio Cargos" />
+              <div className="sideRailInfo">
+                <b>Wide Barrel Cargo</b>
+                <span className="sideRailGsm">Curved Skater Denim</span>
+                <strong>₹1,899</strong>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+      </div>
     </section>
   );
 }

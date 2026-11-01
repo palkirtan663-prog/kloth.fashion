@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { dbState } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
@@ -61,6 +62,25 @@ function createApp(config) {
   app.use('/api', marketingRoutes);
   app.use('/api/upload', uploadRoutes);
 
+
+  // Production static serving of React client
+  const clientDistDir = path.join(__dirname, '..', '..', 'client', 'dist');
+  if (fs.existsSync(clientDistDir)) {
+    app.use(express.static(clientDistDir));
+  }
+
+  // Handle unmatched API endpoints with a JSON 404
+  app.use('/api', notFound);
+
+  // Client SPA fallback: for any GET route not starting with /api or /images, serve index.html
+  if (fs.existsSync(clientDistDir)) {
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/images')) {
+        return res.sendFile(path.join(clientDistDir, 'index.html'));
+      }
+      next();
+    });
+  }
 
   app.use(notFound);
   app.use(errorHandler);

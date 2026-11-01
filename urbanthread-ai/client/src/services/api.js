@@ -1,14 +1,22 @@
 // Talks to the Express API. Stores the login token and attaches it to every request.
-// Works seamlessly with Vite's proxy (/api) or direct server URLs with automatic fallback.
+// Works seamlessly with Vite's proxy (/api), direct server URLs, or deployed domains.
 const CONFIGURED_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '');
 
+const isBrowser = typeof window !== 'undefined';
+const isLocal = isBrowser && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// When deployed to production, ignore any hardcoded localhost URL that was baked into the build
+const sanitizedConfigBase = (!isLocal && (CONFIGURED_BASE.includes('localhost') || CONFIGURED_BASE.includes('127.0.0.1')))
+  ? ''
+  : CONFIGURED_BASE;
+
 // Dynamic base that remembers which candidate succeeded to keep subsequent requests instant
-let activeBase = CONFIGURED_BASE || '/api';
+let activeBase = sanitizedConfigBase || '/api';
 
 export const API_BASE = activeBase;
 
 const TOKEN_KEY = 'kloth_token';
-const REQUEST_TIMEOUT_MS = 25000;
+const REQUEST_TIMEOUT_MS = isLocal ? 25000 : 12000;
 
 export const getToken = () => {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
@@ -30,17 +38,22 @@ export async function api(path, { method = 'GET', body } = {}) {
   const payload = body ? JSON.stringify(body) : undefined;
 
   // Build candidate URL bases in priority order:
-  // 1. Current working activeBase
-  // 2. Vite same-origin proxy '/api'
-  // 3. Direct IPv4 'http://127.0.0.1:5000/api'
-  // 4. Direct 'http://localhost:5000/api'
-  const candidates = [
-    activeBase,
-    '/api',
-    'http://127.0.0.1:5000/api',
-    'http://localhost:5000/api',
-    CONFIGURED_BASE,
-  ].filter(Boolean).filter((v, idx, arr) => arr.indexOf(v) === idx);
+  // In local development: activeBase -> /api -> 127.0.0.1:5000 -> localhost:5000 -> CONFIGURED_BASE
+  // In production deployment: activeBase -> /api -> relative origin /api -> remote CONFIGURED_BASE (never localhost)
+  const candidates = isLocal
+    ? [
+        activeBase,
+        '/api',
+        'http://127.0.0.1:5000/api',
+        'http://localhost:5000/api',
+        sanitizedConfigBase,
+      ].filter(Boolean).filter((v, idx, arr) => arr.indexOf(v) === idx)
+    : [
+        activeBase,
+        '/api',
+        isBrowser ? `${window.location.origin}/api` : null,
+        sanitizedConfigBase,
+      ].filter(Boolean).filter((v, idx, arr) => arr.indexOf(v) === idx);
 
   let res = null;
   let networkError = null;

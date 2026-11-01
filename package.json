@@ -1,0 +1,24 @@
+{
+  "name": "urbanthread-ai-fixed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kloth.fashion - Contemporary Streetwear & Bespoke Atelier (React 19 + Express 5 + MongoDB)",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "setup": "npm --prefix urbanthread-ai run setup",
+    "dev": "npm --prefix urbanthread-ai run dev",
+    "server": "npm --prefix urbanthread-ai run server",
+    "client": "npm --prefix urbanthread-ai run client",
+    "build": "npm --prefix urbanthread-ai run build",
+    "start": "npm --prefix urbanthread-ai run start",
+    "seed": "npm --prefix urbanthread-ai run seed",
+    "seed:reset": "npm --prefix urbanthread-ai run seed:reset",
+    "seed:admin": "npm --prefix urbanthread-ai run seed:admin",
+    "admin:reset": "npm --prefix urbanthread-ai run admin:reset",
+    "images": "npm --prefix urbanthread-ai run images",
+    "test": "npm --prefix urbanthread-ai run test"
+  }
+}
+
