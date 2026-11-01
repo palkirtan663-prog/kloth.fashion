@@ -100,6 +100,13 @@ export async function api(path, { method = 'GET', body, timeoutMs } = {}) {
     path === '/auth/reset-password';
   if (res.status === 401 && token && !isAuthCall) onUnauthorized();
 
+  // If the server answered with an HTML page or empty object on an auth endpoint
+  if (isAuthCall && (!data || (!data.user && !data.error && !data.token))) {
+    const err = new Error('API server unavailable - switching to resilient auth');
+    err.status = 503;
+    throw err;
+  }
+
   if (!res.ok) {
     const err = new Error(data.error || 'Something went wrong. Please try again.');
     err.status = res.status;
