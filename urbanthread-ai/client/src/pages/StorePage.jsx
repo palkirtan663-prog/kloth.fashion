@@ -15,6 +15,7 @@ import Recommendations from '../components/Recommendations.jsx';
 import CustomRequestDialog from '../components/CustomRequestDialog.jsx';
 import HelpCenterDialog from '../components/HelpCenterDialog.jsx';
 import NotificationDrawer from '../components/NotificationDrawer.jsx';
+import MobileBottomNav from '../components/MobileBottomNav.jsx';
 import useProducts from '../hooks/useProducts.js';
 import {
   TrendingUp,
@@ -905,6 +906,26 @@ export default function StorePage({
         }}
         onOpenCustomRequest={() => setCustomRequestOpen(true)}
         onOpenNotifications={() => setNotifDrawerOpen(true)}
+      />
+
+      {/* Amazon / Myntra Style Mobile Sticky Bottom Navigation */}
+      <MobileBottomNav
+        onHome={() => {
+          resetAllFilters();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenCategories={() => setMobile(true)}
+        onToggleWishlist={() => setShowWishlist((prev) => !prev)}
+        showWishlist={showWishlist}
+        likedCount={liked.length}
+        onOpenCart={() => cartRef.current && cartRef.current.showModal()}
+        cartCount={cart.reduce((s, p) => s + (p.quantity || 1), 0)}
+        cartBouncing={cartBouncing}
+        onOpenAccount={() => {
+          setUserPanelInitialTab('orders');
+          setUserPanel(true);
+        }}
+        user={currentUser}
       />
     </div>
   );

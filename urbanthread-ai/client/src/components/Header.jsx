@@ -21,6 +21,7 @@ import {
   Flame,
   Star,
   ExternalLink,
+  MapPin,
 } from 'lucide-react';
 import { formatINR } from '../utils/format.js';
 
@@ -125,17 +126,17 @@ export default function Header({
   // Live Auto-complete matches from actual store catalogue
   const searchMatches = query.trim().length >= 1
     ? allProducts
-        .filter((p) => {
-          const q = query.toLowerCase();
-          return (
-            p.name.toLowerCase().includes(q) ||
-            p.category.toLowerCase().includes(q) ||
-            (p.color && p.color.toLowerCase().includes(q)) ||
-            (p.tag && p.tag.toLowerCase().includes(q)) ||
-            (p.gender && p.gender.toLowerCase().includes(q))
-          );
-        })
-        .slice(0, 6)
+      .filter((p) => {
+        const q = query.toLowerCase();
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          (p.color && p.color.toLowerCase().includes(q)) ||
+          (p.tag && p.tag.toLowerCase().includes(q)) ||
+          (p.gender && p.gender.toLowerCase().includes(q))
+        );
+      })
+      .slice(0, 6)
     : [];
 
   // Close search dropdown on click outside
@@ -498,49 +499,115 @@ export default function Header({
           </div>
         </div>
 
-        {/* Mobile Full-Width Search Input Row (toggled) */}
-        {mobileSearchVisible && (
-          <div className="mobileSearchExpandRow" ref={mobileSearchRef}>
-            <div className="mobileSearchInputBox">
-              <Search size={16} />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => onQuery(e.target.value)}
-                placeholder="Search clothing, sneakers, accessories..."
-                autoFocus
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => onQuery('')}
-                  aria-label="Clear search"
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-
-            {/* Mobile Auto-Complete List */}
-            {query.trim().length >= 1 && searchMatches.length > 0 && (
-              <div className="mobileSearchDropdown">
-                {searchMatches.map((item) => (
-                  <div
-                    key={item.id}
-                    className="mobileMatchRow"
-                    onClick={() => handleSelectProductItem(item)}
-                  >
-                    <img src={item.image} alt={item.name} />
-                    <div>
-                      <strong>{item.name}</strong>
-                      <small>{item.category} · {formatINR(item.price)}</small>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {/* ================= AMAZON-STYLE PRO MOBILE APP HEADER ROWS ================= */}
+        {/* Row 1: Persistent Clean Mobile Search Box */}
+        <div className="mobileSearchExpandRow mobileOnly" ref={mobileSearchRef}>
+          <div className="mobileSearchInputBox">
+            <Search size={16} className="mobileSearchIcon" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => onQuery(e.target.value)}
+              placeholder="Search hoodies, cargos, waffle tees, jewelry..."
+              aria-label="Search streetwear and accessories"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => onQuery('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
             )}
           </div>
-        )}
+
+          {/* Mobile Auto-Complete List */}
+          {query.trim().length >= 1 && searchMatches.length > 0 && (
+            <div className="mobileSearchDropdown">
+              {searchMatches.map((item) => (
+                <div
+                  key={item.id}
+                  className="mobileMatchRow"
+                  onClick={() => handleSelectProductItem(item)}
+                >
+                  <img src={item.image} alt={item.name} />
+                  <div>
+                    <strong>{item.name}</strong>
+                    <small>{item.category} · {formatINR(item.price)}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: Amazon-Style Deliver-To Location Bar */}
+        <div
+          className="mobileLocationStrip mobileOnly"
+          onClick={() => onOpenUserPanel && onOpenUserPanel()}
+          role="button"
+          tabIndex={0}
+        >
+          <MapPin size={13} className="locationPinIcon" />
+          <span className="locationText">
+            Deliver to {user?.name ? user.name.split(' ')[0] : 'Guest'} - <b>{user?.address?.city || 'Mumbai'} {user?.address?.postalCode || '400050'}</b> · Express 2-4 Days
+          </span>
+          <ChevronDown size={13} className="locationChevron" />
+        </div>
+
+        {/* Row 3: Amazon / Myntra Quick Category Scroller */}
+        <div className="mobileQuickCategoryScroller mobileOnly">
+          <button
+            type="button"
+            className={`mobilePillChip ${categoryFilter === 'All' && !query ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('All')}
+          >
+            🔥 All
+          </button>
+          <button
+            type="button"
+            className={`mobilePillChip ${categoryFilter === 'Hoodies' ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('Hoodies')}
+          >
+            🧥 Hoodies
+          </button>
+          <button
+            type="button"
+            className={`mobilePillChip ${categoryFilter === 'T-Shirts' ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('T-Shirts')}
+          >
+            👕 T-Shirts
+          </button>
+          <button
+            type="button"
+            className={`mobilePillChip ${categoryFilter === 'Baggy Jeans' ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('Baggy Jeans')}
+          >
+            👖 Baggy Jeans
+          </button>
+          <button
+            type="button"
+            className={`mobilePillChip ${categoryFilter === 'Cargo Pants' ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('Cargo Pants')}
+          >
+            👖 Cargos
+          </button>
+          <button
+            type="button"
+            className={`mobilePillChip ${['Chains', 'Necklaces', 'Bracelets', 'Earrings'].includes(categoryFilter) ? 'active' : ''}`}
+            onClick={() => handleSelectCategoryAndScroll('Chains')}
+          >
+            💍 Jewelry
+          </button>
+          <button
+            type="button"
+            className="mobilePillChip promoPill"
+            onClick={onOpenNotifications}
+          >
+            ⚡ Deals
+          </button>
+        </div>
       </div>
 
       {/* ================= LEVEL C: MAIN HORIZONTAL CATEGORY NAVIGATION BAR ================= */}
