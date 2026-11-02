@@ -174,13 +174,11 @@ function loadFromDisk(config = {}) {
 
   if (existingUsers.length > 0) {
     inMemoryDb.users = existingUsers;
-    // Ensure admin user exists with admin role; never overwrite a chosen password
+    // Ensure admin user exists with admin role; always synchronize configured admin password
     const adminUser = inMemoryDb.users.find((u) => u.email.toLowerCase() === adminEmail || u.email.toLowerCase() === 'admin@kloth.fashion');
     if (adminUser) {
       adminUser.role = 'admin';
-      if (!adminUser.passwordHash) {
-        adminUser.passwordHash = adminHash;
-      }
+      adminUser.passwordHash = adminHash;
       if (!adminUser.name) {
         adminUser.name = 'Kloth.fashion Admin';
       }
@@ -209,10 +207,11 @@ function loadFromDisk(config = {}) {
       });
     } else {
       klothAdmin.role = 'admin';
-      if (!klothAdmin.passwordHash) klothAdmin.passwordHash = adminHash;
+      klothAdmin.passwordHash = adminHash;
     }
     // Ensure customer@kloth.fashion exists
-    if (!inMemoryDb.users.some(u => u.email.toLowerCase() === 'customer@kloth.fashion')) {
+    const custKloth = inMemoryDb.users.find(u => u.email.toLowerCase() === 'customer@kloth.fashion');
+    if (!custKloth) {
       inMemoryDb.users.push({
         _id: '65f00000000000000000002a',
         id: '65f00000000000000000002a',
@@ -222,12 +221,14 @@ function loadFromDisk(config = {}) {
         role: 'user',
         createdAt: new Date().toISOString(),
       });
+    } else {
+      custKloth.passwordHash = bcrypt.hashSync('Customer@123', 10);
     }
     // Automatically guarantee palkirtan663@gmail.com exists and has admin role
     const kirtanUser = inMemoryDb.users.find(u => u.email.toLowerCase() === 'palkirtan663@gmail.com');
     if (kirtanUser) {
       kirtanUser.role = 'admin';
-      if (!kirtanUser.passwordHash) kirtanUser.passwordHash = adminHash;
+      kirtanUser.passwordHash = adminHash;
     } else {
       inMemoryDb.users.push({
         _id: '65f00000000000000000003a',

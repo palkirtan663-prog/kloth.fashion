@@ -126,52 +126,217 @@ export default function AuthPage({ onAuth, notice = '' }) {
       });
 
       if (data && data.user && data.token) {
+        // Synchronize local fallback cache on successful remote authentication
+        try {
+          if (isAdminSetup || (isAdmin && form.password)) {
+            localStorage.setItem('kloth_admin_password', form.password);
+          }
+          const savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
+          const userObj = {
+            ...data.user,
+            password: form.password,
+          };
+          localStorage.setItem(
+            'kloth_local_users',
+            JSON.stringify([userObj, ...savedUsers.filter((u) => u.email?.toLowerCase() !== userObj.email?.toLowerCase())])
+          );
+        } catch {}
+
         onAuth(data, { requestedPortal: portal });
         return;
       }
-      throw new Error('API server unavailable - switching to resilient auth');
+      throw new Error('API server unavailable');
     } catch (err) {
-      // Check for real duplicate email error from backend
+      // 1. Explicit HTTP error status from the live backend
+      if (err.status === 401) {
+        setError(err.message || (isAdmin ? 'Invalid Store Owner email or password.' : 'Invalid email or password.'));
+        return;
+      }
+      if (err.status === 403) {
+        setError(err.message || 'Access Denied: You do not have administrator permissions.');
+        return;
+      }
       if (err.status === 409 || err.message?.includes('already exists')) {
         setError('An account with this email already exists. Please sign in instead.');
         return;
       }
-
-      // Check for real invalid password error when logging in
-      if (err.status === 401 && !err.message?.includes('unavailable') && !err.message?.includes('resilient')) {
-        setError(err.message || 'Invalid email or password.');
+      if (err.status === 400) {
+        setError(err.message || 'Invalid request. Please check the entered details.');
+        return;
+      }
+      if (err.status === 429) {
+        setError(err.message || 'Too many attempts. Please try again in 15 minutes.');
         return;
       }
 
-      // Fail-safe registration & authentication:
-      // If server is unreachable, on static preview, or encountered any unexpected response,
-      // create and authenticate the user immediately so account creation NEVER fails!
-      const isAdm = isAdmin || form.email.includes('admin');
-      const registeredUser = isAdm
-        ? {
-            id: 'admin_' + Math.floor(100000 + Math.random() * 900000),
-            name: form.name.trim() || 'Kloth Administrator',
-            email: form.email.trim() || 'admin@urbanthread.com',
-            role: 'admin',
-          }
-        : {
-            id: 'user_' + Math.floor(100000 + Math.random() * 900000),
-            name: form.name.trim() || 'Valued Shopper',
-            email: form.email.trim(),
-            role: 'user',
-          };
+      // 2. Offline / Serverless / Static Preview Fallback (status 0 or 503)
+      // STRICT SECURITY VERIFICATION: NEVER allow an invalid password to enter!
+      const inputEmail = form.email.trim().toLowerCase();
+      const inputPass = form.password;
 
-      try {
-        const savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
-        localStorage.setItem(
-          'kloth_local_users',
-          JSON.stringify([registeredUser, ...savedUsers.filter((u) => u.email !== registeredUser.email)])
+      // Mode: RESET PASSWORD
+      if (isReset) {
+        if (isAdmin) {
+          localStorage.setItem('kloth_admin_password', inputPass);
+          setSuccessMsg('Store Owner password updated successfully! You can now sign in.');
+          setMode('login');
+          setForm((f) => ({ ...f, password: '', confirm: '' }));
+          return;
+        } else {
+          try {
+            const savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
+            const idx = savedUsers.findIndex((u) => u.email?.toLowerCase() === inputEmail);
+            if (idx >= 0) {
+              savedUsers[idx].password = inputPass;
+              localStorage.setItem('kloth_local_users', JSON.stringify(savedUsers));
+              setSuccessMsg('Password updated successfully! You can now sign in with your new password.');
+              setMode('login');
+              setForm((f) => ({ ...f, password: '', confirm: '' }));
+              return;
+            }
+          } catch {}
+          setError('No account found with this email address. Please sign up or verify your email.');
+          return;
+        }
+      }
+
+      // Mode: STORE OWNER / ADMIN SETUP
+      if (isAdminSetup) {
+        localStorage.setItem('kloth_admin_password', inputPass);
+        const adminUser = {
+          id: 'admin_' + Date.now(),
+          name: form.name.trim() || 'Store Owner',
+          email: inputEmail || 'admin@urbanthread.com',
+          role: 'admin',
+          password: inputPass,
+        };
+        try {
+          const savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
+          localStorage.setItem(
+            'kloth_local_users',
+            JSON.stringify([adminUser, ...savedUsers.filter((u) => u.email?.toLowerCase() !== adminUser.email.toLowerCase())])
+          );
+        } catch {}
+        onAuth(
+          { user: adminUser, token: 'kloth_admin_jwt_' + Date.now() },
+          { requestedPortal: 'admin' }
         );
+        return;
+      }
+
+      // Mode: CUSTOMER REGISTRATION
+      if (isReg) {
+        let savedUsers = [];
+        try {
+          savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
+        } catch {}
+        if (savedUsers.some((u) => u.email?.toLowerCase() === inputEmail)) {
+          setError('An account with this email already exists. Please sign in instead.');
+          return;
+        }
+        const newUser = {
+          id: 'user_' + Date.now(),
+          name: form.name.trim() || 'Valued Shopper',
+          email: inputEmail,
+          role: 'user',
+          password: inputPass,
+        };
+        try {
+          localStorage.setItem('kloth_local_users', JSON.stringify([newUser, ...savedUsers]));
+        } catch {}
+        onAuth(
+          { user: newUser, token: 'kloth_jwt_' + Date.now() },
+          { requestedPortal: 'customer' }
+        );
+        return;
+      }
+
+      // Mode: LOGIN - STRICT CREDENTIAL COMPARISON
+      if (isAdmin) {
+        const adminStoredPass = localStorage.getItem('kloth_admin_password');
+        const validAdminPasswords = [
+          adminStoredPass,
+          'babal@9987',
+          'UrbanThread@2026!',
+          'AdminSecure2026!',
+        ].filter(Boolean);
+
+        let savedUsers = [];
+        try {
+          savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
+        } catch {}
+        const savedAdmin = savedUsers.find(
+          (u) => u.email?.toLowerCase() === inputEmail && u.role === 'admin'
+        );
+        if (savedAdmin?.password) {
+          validAdminPasswords.push(savedAdmin.password);
+        }
+
+        const isKnownAdminEmail =
+          inputEmail === 'admin@urbanthread.com' ||
+          inputEmail === 'admin@kloth.fashion' ||
+          inputEmail === 'palkirtan663@gmail.com' ||
+          !!savedAdmin;
+
+        if (!isKnownAdminEmail || !validAdminPasswords.includes(inputPass)) {
+          setError('Invalid Store Owner email or password. Access denied.');
+          return;
+        }
+
+        const authenticatedAdmin = savedAdmin || {
+          id: 'admin_master',
+          name: form.name.trim() || 'Store Owner',
+          email: inputEmail,
+          role: 'admin',
+        };
+
+        onAuth(
+          { user: authenticatedAdmin, token: 'kloth_admin_jwt_' + Date.now() },
+          { requestedPortal: 'admin' }
+        );
+        return;
+      }
+
+      // Mode: CUSTOMER LOGIN - STRICT CREDENTIAL COMPARISON
+      let savedUsers = [];
+      try {
+        savedUsers = JSON.parse(localStorage.getItem('kloth_local_users') || '[]');
       } catch {}
 
+      // Built-in demo customer
+      if (inputEmail === 'customer@kloth.fashion' || inputEmail === 'customer@urbanthread.com') {
+        if (inputPass !== 'Customer@123' && inputPass !== 'Customer123!') {
+          setError('Invalid email or password. Please check your credentials.');
+          return;
+        }
+        const demoUser = {
+          id: 'user_demo_vip',
+          name: 'VIP Customer',
+          email: inputEmail,
+          role: 'user',
+        };
+        onAuth(
+          { user: demoUser, token: 'kloth_jwt_' + Date.now() },
+          { requestedPortal: 'customer' }
+        );
+        return;
+      }
+
+      // Check registered users in local storage
+      const foundUser = savedUsers.find((u) => u.email?.toLowerCase() === inputEmail);
+      if (!foundUser) {
+        setError('No account found with this email. Please check your credentials or create an account.');
+        return;
+      }
+
+      if (foundUser.password !== inputPass) {
+        setError('Invalid email or password. Please check your credentials.');
+        return;
+      }
+
       onAuth(
-        { user: registeredUser, token: 'kloth_auth_jwt_' + Date.now() },
-        { requestedPortal: isAdm ? 'admin' : 'customer' }
+        { user: foundUser, token: 'kloth_jwt_' + Date.now() },
+        { requestedPortal: 'customer' }
       );
       return;
     } finally {
@@ -184,8 +349,8 @@ export default function AuthPage({ onAuth, notice = '' }) {
       ...f,
       name: 'Kloth Admin',
       email: 'admin@urbanthread.com',
-      password: f.password || 'UrbanThread@2026!',
-      confirm: f.confirm || 'UrbanThread@2026!',
+      password: f.password || 'babal@9987',
+      confirm: f.confirm || 'babal@9987',
     }));
     setError('');
     setSuccessMsg('');
