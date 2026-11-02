@@ -2126,11 +2126,15 @@ dialog::backdrop {
  .modalBack {
    position: fixed;
    inset: 0;
-   background: #0007;
-   z-index: 40;
-   display: grid;
-   place-items: center;
-   padding: 16px
+   background: rgba(0, 0, 0, 0.72);
+   backdrop-filter: blur(4px);
+   -webkit-backdrop-filter: blur(4px);
+   z-index: 99999;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   padding: 16px;
  }
 
  .modalBox {
@@ -2563,6 +2567,15 @@ dialog::backdrop {
      opacity: 1;
      transform: translate(-50%, 0)
    }
+ }
+
+ /* ===================== Product Card Action Section ===================== */
+ .cardActionSection {
+   display: flex;
+   flex-direction: column;
+   padding: 8px 12px 14px 12px;
+   gap: 6px;
+   margin-top: auto;
  }
 
  /* ===================== Product Card Size Selector ===================== */
@@ -8593,19 +8606,17 @@ dialog::backdrop {
     object-fit: cover;
   }
 
-  /* Make Quick Add & Size buttons permanent and touch-friendly on phone */
-  .product .quick {
-    position: static !important;
-    opacity: 1 !important;
-    transform: none !important;
+  /* Make Add to Bag & Size buttons always visible and touch-friendly on phone */
+  .cardActionSection {
     display: flex !important;
     flex-direction: column !important;
-    padding: 6px 8px 8px 8px !important;
+    padding: 6px 8px 10px 8px !important;
     background: transparent !important;
-    margin-top: auto;
+    margin-top: auto !important;
+    gap: 5px !important;
   }
 
-  .product .cardSizeSelect {
+  .cardSizeSelect {
     display: flex !important;
     gap: 3px !important;
     justify-content: center !important;
@@ -8613,7 +8624,7 @@ dialog::backdrop {
     flex-wrap: wrap !important;
   }
 
-  .product .cardSizeBtn {
+  .cardSizeBtn {
     width: 24px !important;
     height: 24px !important;
     font-size: 9px !important;
@@ -8624,15 +8635,15 @@ dialog::backdrop {
     color: #222 !important;
   }
 
-  .product .cardSizeBtn.active {
+  .cardSizeBtn.active {
     background: #111 !important;
     color: #fff !important;
     border-color: #111 !important;
   }
 
-  .product .quickAddBtn {
+  .quickAddBtn {
     width: 100% !important;
-    padding: 7px 6px !important;
+    padding: 8px 6px !important;
     font-size: 11px !important;
     font-weight: 700 !important;
     border-radius: 5px !important;
@@ -8713,9 +8724,13 @@ dialog::backdrop {
    ========================================================================== */
 @media (max-width: 640px) {
   .modalBack {
-    align-items: flex-end !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
     padding: 0 !important;
-    background: rgba(0, 0, 0, 0.7) !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    z-index: 99999 !important;
   }
 
   .modalBox,
@@ -8723,10 +8738,27 @@ dialog::backdrop {
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 20px 20px 0 0 !important;
-    max-height: 90vh !important;
-    padding: 18px 16px calc(24px + env(safe-area-inset-bottom, 0px)) 16px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+    padding: 18px 16px calc(28px + env(safe-area-inset-bottom, 15px)) 16px !important;
     margin: 0 !important;
     animation: slideUpBottomSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-sizing: border-box !important;
+  }
+
+  .checkoutBox {
+    max-height: 94vh !important;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 20px)) !important;
+  }
+
+  .invoiceBackdrop {
+    z-index: 100000 !important;
+  }
+
+  .invoiceModalBox {
+    max-height: 94vh !important;
+    overflow-y: auto !important;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 20px)) !important;
   }
 
   .modalHead {

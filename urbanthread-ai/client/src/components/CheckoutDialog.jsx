@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Building, Truck, Tag, ArrowRight, Loader2, Info } from 'lucide-react';
+import { X, ShieldCheck, CheckCircle2, CreditCard, Smartphone, Building, Truck, Tag, ArrowRight, Loader2, Info, FileText } from 'lucide-react';
 import Img from './Img.jsx';
 import { formatINR, productAlt } from '../utils/format.js';
 import { api, setToken } from '../services/api.js';
 
-export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlaced, initialPromo = '' }) {
+export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlaced, initialPromo = '', onOpenInvoice }) {
   const [step, setStep] = useState('checkout'); // 'checkout' | 'success'
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -550,6 +550,19 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
 
             <div className="successActions">
               <button
+                type="button"
+                className="secondary viewInvoiceBtn"
+                onClick={() => {
+                  if (onOpenInvoice && placedOrder) {
+                    onOpenInvoice(placedOrder);
+                  }
+                }}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              >
+                <FileText size={16} /> View Tax Invoice & Receipt
+              </button>
+              <button
+                type="button"
                 className="primary"
                 onClick={() => {
                   onClose();
@@ -558,7 +571,7 @@ export default function CheckoutDialog({ open, onClose, cart, user, onOrderPlace
               >
                 Track This Order
               </button>
-              <button className="secondary" onClick={onClose}>Continue Shopping</button>
+              <button type="button" className="secondary" onClick={onClose}>Continue Shopping</button>
             </div>
           </div>
         )}

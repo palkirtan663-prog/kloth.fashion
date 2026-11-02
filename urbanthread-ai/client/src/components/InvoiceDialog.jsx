@@ -81,33 +81,35 @@ export default function InvoiceDialog({ order, onClose }) {
           </div>
 
           {/* Items Table */}
-          <table className="invoiceTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Item Description</th>
-                <th>Size</th>
-                <th>Qty</th>
-                <th style={{ textAlign: 'right' }}>Unit Price</th>
-                <th style={{ textAlign: 'right' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items?.map((it, idx) => (
-                <tr key={idx}>
-                  <td>{idx + 1}</td>
-                  <td>
-                    <strong>{it.name}</strong>
-                    {it.color && <small> · Color: {it.color}</small>}
-                  </td>
-                  <td>{it.size || 'M'}</td>
-                  <td>{it.quantity}</td>
-                  <td style={{ textAlign: 'right' }}>{formatINR(it.price)}</td>
-                  <td style={{ textAlign: 'right' }}>{formatINR(it.price * it.quantity)}</td>
+          <div className="tableWrap invoiceTableWrap">
+            <table className="invoiceTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Item Description</th>
+                  <th>Size</th>
+                  <th>Qty</th>
+                  <th style={{ textAlign: 'right' }}>Unit Price</th>
+                  <th style={{ textAlign: 'right' }}>Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {order.items?.map((it, idx) => (
+                  <tr key={idx}>
+                    <td>{idx + 1}</td>
+                    <td>
+                      <strong>{it.name}</strong>
+                      {it.color && <small> · Color: {it.color}</small>}
+                    </td>
+                    <td>{it.size || 'M'}</td>
+                    <td>{it.quantity}</td>
+                    <td style={{ textAlign: 'right' }}>{formatINR(it.price)}</td>
+                    <td style={{ textAlign: 'right' }}>{formatINR(it.price * it.quantity)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Totals Summary */}
           <div className="invoiceTotalsWrap">

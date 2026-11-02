@@ -42,6 +42,7 @@ export default function UserPanel({
   initialTab = 'orders',
   onOpenCustomRequestModal,
   onOpenHelpCenter,
+  onOpenInvoice,
 }) {
   const [tab, setTab] = useState(initialTab); // 'orders' | 'custom' | 'tickets' | 'profile' | 'wishlist'
   const [orders, setOrders] = useState([]);
@@ -491,7 +492,13 @@ export default function UserPanel({
                               <button
                                 type="button"
                                 className="secondary miniBtn"
-                                onClick={() => setInvoiceOrder(o)}
+                                onClick={() => {
+                                  if (onOpenInvoice) {
+                                    onOpenInvoice(o);
+                                  } else {
+                                    setInvoiceOrder(o);
+                                  }
+                                }}
                                 title="View & Print Invoice"
                               >
                                 <Printer size={13} /> Invoice

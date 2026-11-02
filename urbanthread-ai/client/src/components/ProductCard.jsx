@@ -43,53 +43,6 @@ export default function ProductCard({ product: p, liked, onToggleLike, onAdd }) 
         >
           <Heart fill={liked ? 'currentColor' : 'none'} size={18} />
         </button>
-
-        {/* Quick Add Overlay */}
-        <div className="quick">
-          {!isAccessory ? (
-            <div className="cardSizeSelect" onClick={(e) => e.stopPropagation()}>
-              {availableSizes.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={'cardSizeBtn ' + (selectedSize === s ? 'active' : '')}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedSize(s);
-                  }}
-                  aria-label={`Select size ${s}`}
-                  aria-pressed={selectedSize === s}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="cardSizeSelect accessorySize" onClick={(e) => e.stopPropagation()}>
-              <span className="cardSizeBtn active oneSizeBtn">ONE SIZE</span>
-            </div>
-          )}
-
-          <button
-            onClick={handleAdd}
-            className={`quickAddBtn ${justAdded ? 'added' : ''} ${isOutOfStock ? 'disabledAdd' : ''}`}
-            disabled={justAdded || isOutOfStock}
-            type="button"
-          >
-            {isOutOfStock ? (
-              'Sold Out'
-            ) : justAdded ? (
-              <>
-                <Check size={14} /> Added to Bag
-              </>
-            ) : (
-              <>
-                <ShoppingBag size={13} style={{ marginRight: 4 }} />
-                Add to Bag {!isAccessory ? `(${selectedSize})` : ''}
-              </>
-            )}
-          </button>
-        </div>
       </Tilt>
 
       <div className="meta">
@@ -100,12 +53,10 @@ export default function ProductCard({ product: p, liked, onToggleLike, onAdd }) 
         <strong>{formatINR(p.price)}</strong>
       </div>
 
-      {p.description && <p className="desc">{p.description}</p>}
-
       <div className="cardBottomMeta">
         <div className="rating">
           <Star size={13} fill="currentColor" /> {Number(p.rating || 4.8).toFixed(1)}
-          <span className="ratingReviews">({Math.floor((p.price % 37) + 12)} reviews)</span>
+          <span className="ratingReviews">({Math.floor((p.price % 37) + 12)})</span>
         </div>
 
         {isLowStock && (
@@ -113,6 +64,53 @@ export default function ProductCard({ product: p, liked, onToggleLike, onAdd }) 
             <AlertTriangle size={11} /> Only {p.stock} left
           </span>
         )}
+      </div>
+
+      {/* Dedicated Touch-Friendly Action Section for Mobile and Desktop */}
+      <div className="cardActionSection">
+        {!isAccessory ? (
+          <div className="cardSizeSelect" onClick={(e) => e.stopPropagation()}>
+            {availableSizes.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={'cardSizeBtn ' + (selectedSize === s ? 'active' : '')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedSize(s);
+                }}
+                aria-label={`Select size ${s}`}
+                aria-pressed={selectedSize === s}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="cardSizeSelect accessorySize" onClick={(e) => e.stopPropagation()}>
+            <span className="cardSizeBtn active oneSizeBtn">ONE SIZE</span>
+          </div>
+        )}
+
+        <button
+          onClick={handleAdd}
+          className={`quickAddBtn ${justAdded ? 'added' : ''} ${isOutOfStock ? 'disabledAdd' : ''}`}
+          disabled={justAdded || isOutOfStock}
+          type="button"
+        >
+          {isOutOfStock ? (
+            'Sold Out'
+          ) : justAdded ? (
+            <>
+              <Check size={14} /> Added to Bag
+            </>
+          ) : (
+            <>
+              <ShoppingBag size={13} style={{ marginRight: 4 }} />
+              Add to Bag {!isAccessory ? `(${selectedSize})` : ''}
+            </>
+          )}
+        </button>
       </div>
     </article>
   );

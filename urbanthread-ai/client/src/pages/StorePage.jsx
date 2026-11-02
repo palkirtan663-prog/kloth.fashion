@@ -16,6 +16,7 @@ import CustomRequestDialog from '../components/CustomRequestDialog.jsx';
 import HelpCenterDialog from '../components/HelpCenterDialog.jsx';
 import NotificationDrawer from '../components/NotificationDrawer.jsx';
 import MobileBottomNav from '../components/MobileBottomNav.jsx';
+import InvoiceDialog from '../components/InvoiceDialog.jsx';
 import useProducts from '../hooks/useProducts.js';
 import {
   TrendingUp,
@@ -116,6 +117,7 @@ export default function StorePage({
   const [customRequestOpen, setCustomRequestOpen] = useState(false);
   const [helpCenterOpen, setHelpCenterOpen] = useState(false);
   const [notifDrawerOpen, setNotifDrawerOpen] = useState(false);
+  const [invoiceOrder, setInvoiceOrder] = useState(null);
 
   const cartRef = useRef(null);
 
@@ -793,7 +795,16 @@ export default function StorePage({
         user={currentUser}
         initialPromo={activePromo}
         onOrderPlaced={handleOrderPlaced}
+        onOpenInvoice={(order) => setInvoiceOrder(order)}
       />
+
+      {/* Tax Invoice & Receipt Modal */}
+      {invoiceOrder && (
+        <InvoiceDialog
+          order={invoiceOrder}
+          onClose={() => setInvoiceOrder(null)}
+        />
+      )}
 
       {/* Live Order Tracking Modal */}
       <TrackingDialog
@@ -818,6 +829,7 @@ export default function StorePage({
         onAddToCart={addToCart}
         onOpenCustomRequestModal={() => setCustomRequestOpen(true)}
         onOpenHelpCenter={() => setHelpCenterOpen(true)}
+        onOpenInvoice={(order) => setInvoiceOrder(order)}
       />
 
       {/* Bespoke Custom Clothing Request Modal */}
